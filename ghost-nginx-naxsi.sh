@@ -1,45 +1,97 @@
-Follow this step-by-step guide to install Ghost blog (https://ghost.org/) on Ubuntu,
-with Nginx as a reverse proxy and the Naxsi web application firewall. This guide is based on
-the blog post of Herman Stevens, with important fixes and optimizations added by me (Lin Song).
+#!/bin/bash
+#
+# Use this automated bash script to install the latest Ghost blog on Ubuntu,
+# with Nginx as a reverse proxy and Naxsi web application firewall.
+#
+# This script must be run on a *freshly installed* Ubuntu 14.04 or 12.04 system.
+# It is intended for use on a Virtual Private Server (VPS) or dedicated server. 
+# Do *NOT* run this script on your PC or Mac!
+#
+# Copyright (C) 2015 Lin Song
+# Based on the work of Herman Stevens (Copyright 2013)
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see http://www.gnu.org/licenses/.
 
-Link to my tutorial: 
-https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/
-Alternative tutorial for Ghost blog with ModSecurity:
-https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/
-Original post by Herman Stevens: 
-https://blog.igbuend.com/dude-looks-like-a-ghost/
+if [ "$(lsb_release -si)" != "Ubuntu" ]; then
+  echo "Looks like you aren't running this script on a Ubuntu system."
+  exit 1
+fi
 
-Special thanks to these people for help on improving this guide:
-Remy van Elst (https://raymii.org), Phil Bayfield (http://phil.io/)
+if [ "$(lsb_release -sr)" != "14.04" ] && [ "$(lsb_release -sr)" != "12.04" ]; then
+  echo "Sorry, this script only supports Ubuntu versions 14.04 and 12.04."
+  exit 1
+fi
 
-This guide can be used with both Ubuntu 14.04 (Trusty) and 12.04 (Precise) servers.
-The only difference is in the install steps for Node.js. See details below.
+if [ "$(id -u)" != 0 ]; then
+  echo "Sorry, you need to run this script as root."
+  exit 1
+fi
 
-Please start with a freshly installed Ubuntu 14.04/12.04 system.
-Commands below should be run as user "root", unless otherwise noted.
+if [ "$1" = "" ] || [ "$1" = "BLOG_FULL_DOMAIN_NAME" ]; then
+  script_name=$(basename "$0")
+  echo "Usage: bash $script_name BLOG_FULL_DOMAIN_NAME"
+  echo
+  echo 'Note: You must replace BLOG_FULL_DOMAIN_NAME above with'
+  echo 'the actual full domain name of your new Ghost blog!'
+  exit 1
+fi
 
-# -------------------------------------------------------------------------------------------
+clear
+echo 'Welcome! This script installs Ghost blog with Nginx and Naxsi.'
+echo
+echo 'The full domain name you specified for your new Ghost blog is:'
+echo
+echo "$1"
+echo
+echo 'Please double check. If this is not correct, your blog will NOT work!'
+echo
+echo 'IMPORTANT:'
+echo 'This script must be run on a *freshly installed* Ubuntu 14.04 or 12.04 system.'
+echo 'It is intended for use on a Virtual Private Server (VPS) or dedicated server.'
+echo 'Do *NOT* run this script on your PC or Mac!'
+echo
 
-** !! IMPORTANT !! **
-Please define the full domain name of your Ghost blog here:
- (You MUST replace myblog.example.com with your actual domain name)
+read -r -p "Confirm and proceed with the install? [y/N] " response
+case $response in
+    [yY][eE][sS]|[yY]) 
+        echo
+        echo "Please be patient. Setup is continuing..."
+        echo
+        ;;
+    *)
+        echo "Aborting."
+        exit 1
+        ;;
+esac
 
-BLOG_FQDN=myblog.example.com
+BLOG_FQDN=$1
 export BLOG_FQDN
 echo "$BLOG_FQDN" > /tmp/BLOG_FQDN
 
-# Before doing anything else make it a habit to update the OS and software:
-apt-get update
-apt-get -y upgrade
+# Create and change to working dir
+mkdir -p /opt/src
+cd /opt/src || { echo "Failed to change working directory to /opt/src. Aborting."; exit 1; }
 
-# Install git (if not already installed):
-apt-get -y install git
+# Before doing anything else, we update the OS and software:
+export DEBIAN_FRONTEND=noninteractive
+apt-get -y update
+apt-get -y upgrade
 
 # We need some more software:
 apt-get -y install unzip fail2ban iptables-persistent \
-  build-essential apache2-dev libxml2-dev \
+  build-essential apache2-dev libxml2-dev wget curl \
   libcurl4-openssl-dev libpcre3-dev libssl-dev
 
+: '
 (Optional) Commands between dividers below are optional, but they could improve the security 
   of your server and reduce the number of brute-force login attempts in your SSH logs.
 
@@ -47,13 +99,13 @@ apt-get -y install unzip fail2ban iptables-persistent \
 # -------------------------------------------------------------------------------------------
 
 # Configure a non-standard port for SSH (e.g. 6543)
-cp /etc/ssh/sshd_config /etc/ssh/sshd_config.old
-sed 's/Port 22/Port 6543/' </etc/ssh/sshd_config >/etc/ssh/sshd_config.new
-mv /etc/ssh/sshd_config.new /etc/ssh/sshd_config
+/bin/cp -f /etc/ssh/sshd_config /etc/ssh/sshd_config.old
+sed "s/Port 22/Port 6543/" </etc/ssh/sshd_config >/etc/ssh/sshd_config.new
+/bin/mv -f /etc/ssh/sshd_config.new /etc/ssh/sshd_config
 service ssh restart
 
 # Let Fail2Ban monitor the non-standard SSH port
-[ -f /etc/fail2ban/jail.local ] && cp /etc/fail2ban/jail.local /etc/fail2ban/jail.local.old
+[ -f /etc/fail2ban/jail.local ] && /bin/cp -f /etc/fail2ban/jail.local /etc/fail2ban/jail.local.old
 nano -w /etc/fail2ban/jail.local
 
 # Copy the following content and paste into nano editor.
@@ -77,12 +129,19 @@ maxretry = 5
 
 # -------------------------------------------------------------------------------------------
 # End of optional commands
+'
 
 # Modify the iptables configuration
 # Make those rules persistent using the package "iptables-persistent".
-# Hint: To save time, copy multiple lines at once before pasting.
-
+[ -f /etc/iptables/rules.v4 ] && /bin/cp -f /etc/iptables/rules.v4 "/etc/iptables/rules.v4.old-$(date +%Y-%m-%d-%H:%M:%S)"
 service iptables-persistent start
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -F
+iptables -t nat -F
+iptables -t raw -F
+iptables -t mangle -F
 iptables -A INPUT -m conntrack --ctstate INVALID -j DROP
 iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 iptables -A INPUT -i lo -j ACCEPT
@@ -94,11 +153,12 @@ iptables -A INPUT -p icmp --icmp-type 4 -j ACCEPT
 iptables -A INPUT -p icmp --icmp-type 8 -j ACCEPT
 iptables -A INPUT -p icmp --icmp-type 11 -j ACCEPT
 iptables -A INPUT -p icmp -j DROP
-# This line is not needed if you configured a different SSH port.
+# This line is not needed if you configured a non-standard SSH port:
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT
-# Replace 6543 below with the new SSH port you configured
-# or remove this line if you use the standard port 22
-iptables -A INPUT -p tcp --dport 6543 -j ACCEPT
+# IMPORTANT:
+# If you have configured a non-standard SSH port (e.g. 6543),
+# you must uncomment this line and replace 6543 with the new port:
+# iptables -A INPUT -p tcp --dport 6543 -j ACCEPT
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 iptables -A INPUT -j DROP
@@ -107,37 +167,46 @@ service fail2ban stop
 /etc/init.d/iptables-persistent save
 service fail2ban start
 
+: '
 (Optional) If your server has IPv6 enabled, you may also want to configure IP6Tables
- by editing the file "/etc/iptables/rules.v6". You can search for examples on the web.
+ by editing the file "/etc/iptables/rules.v6". Search for related tutorials on the web.
 
 Next, we need to install Node.js. See separate steps for Ubuntu 14.04 and 12.04 below.
  (Check Ubuntu version: lsb_release -sr)
 
-# -------------------------------------------------------------------------------------------
-** Steps for Ubuntu 14.04 (Trusty) ONLY **
-# -------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+* Steps for Ubuntu 14.04 (Trusty) ONLY *
+-------------------------------------------------------------------------------------------
+'
 
-apt-get -y install nodejs nodejs-legacy npm
+if [ "$(lsb_release -sr)" = "14.04" ]; then
+  apt-get -y install nodejs nodejs-legacy npm
+fi
 
-# -------------------------------------------------------------------------------------------
-** Steps for Ubuntu 12.04 (Precise) ONLY **
-# -------------------------------------------------------------------------------------------
+: '
+-------------------------------------------------------------------------------------------
+* Steps for Ubuntu 12.04 (Precise) ONLY *
+-------------------------------------------------------------------------------------------
 (Choose ONE from the two methods below)
 
-IMPORTANT: Ghost blog supports Node.js versions 0.10.x, 0.12.x and 4.2.x only.
+Note: Ghost blog supports Node.js versions 0.10.x, 0.12.x and 4.2.x only.
 
 [Method 1] Installing Node.js via package manager.
   Source: https://nodesource.com/blog/nodejs-v012-iojs-and-the-nodesource-linux-repositories#installingnodejsv012
+'
 
-curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
-sudo apt-get install -y nodejs
+if [ "$(lsb_release -sr)" = "12.04" ]; then
+  curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
+  apt-get -y install nodejs
+fi
 
+: '
 [Method 2] Compile node.js from source.
   Note: If you use this method to install node.js, later when a newer version is available,
   you may want to repeat these download, compile & install steps to upgrade it.
   This also applies to other software (e.g. Naxsi, Nginx) that are compiled from source.
 
-cd
+cd /opt/src
 wget -qO- https://nodejs.org/dist/v0.12.9/node-v0.12.9.tar.gz | tar xvz
 cd node-v0.12.9
 ./configure --prefix=/usr
@@ -145,19 +214,24 @@ make && make install
 # The "make" command may take some time...
 
 # -------------------------------------------------------------------------------------------
+'
 
-* Instructions below are for BOTH Ubuntu 14.04 and 12.04.
+# Instructions below are for BOTH Ubuntu 14.04 and 12.04.
 
 # To keep your Ghost blog running, install "forever".
-cd
 npm install forever -g
 
 # Create a user to run Ghost:
 mkdir -p /var/www
-useradd -d /var/www/${BLOG_FQDN} -m -s /bin/false ghost
+useradd -d "/var/www/${BLOG_FQDN}" -m -s /bin/false ghost
+
+# Stop running Ghost blog and Nginx processes, if any.
+su - ghost -s /bin/bash -c "forever stopall"
+service nginx stop
 
 # Switch to user "ghost".
-su - ghost -s /bin/bash
+# REMOVE <<'SU_END' if running script manually.
+su - ghost -s /bin/bash <<'SU_END'
 
 # Commands below will be run as user "ghost".
 
@@ -165,22 +239,17 @@ su - ghost -s /bin/bash
 BLOG_FQDN=$(cat /tmp/BLOG_FQDN)
 export BLOG_FQDN
 
-# Get the ghost source (latest version), unzip and install.
-cd
-wget https://ghost.org/zip/ghost-latest.zip
-unzip ghost-latest.zip && rm ghost-latest.zip
+# Get the ghost blog source (latest version), unzip and install.
+wget -t 3 -T 30 -nv -O ghost-latest.zip https://ghost.org/zip/ghost-latest.zip
+unzip -o ghost-latest.zip && /bin/rm -f ghost-latest.zip
 npm install --production
 
 # Generate config file and make sure that Ghost uses your actual domain name
+[ -f config.js ] && /bin/cp -f config.js "config.js.old-$(date +%Y-%m-%d-%H:%M:%S)"
 sed "s/my-ghost-blog.com/${BLOG_FQDN}/" <config.example.js >config.js
 
 # We need to make certain that Ghost will start automatically after a reboot
-# Open the file in the editor:
-cd
-nano -w starter.sh
-
-# Copy the following content and paste into nano editor
-
+cat > starter.sh <<'EOF'
 #!/bin/sh
 pgrep -f "/usr/bin/node" >/dev/null
 if [ $? -ne 0 ]; then
@@ -190,8 +259,7 @@ if [ $? -ne 0 ]; then
 else
   echo "Already running!"
 fi
-
-# Save the file by CTRL-O and Enter and exit nano with CTRL-X.
+EOF
 
 # Replace placeholder domain with your actual domain name:
 sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/" starter.sh
@@ -200,46 +268,51 @@ sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/" starter.sh
 chmod +x starter.sh
 
 # We use crontab to start this script after a reboot:
+crontab -r
 crontab -l 2>/dev/null | { cat; echo "@reboot /var/www/${BLOG_FQDN}/starter.sh"; } | crontab -
 
+# SKIP this command if running script manually
+SU_END
+
+: '
 # Exit the shell so that you are root again.
 exit
+'
 
-# Commands below will be run as user "root".
+# Commands below will be run as "root".
 
 # Create the logfile:
 touch /var/log/nodelog.txt
 chown ghost.ghost /var/log/nodelog.txt
 
 # Download and extract Naxsi:
-cd
-wget -qO- https://github.com/nbs-system/naxsi/archive/0.54.tar.gz | tar xvz
+cd /opt/src
+wget -t 3 -T 30 -qO- https://github.com/nbs-system/naxsi/archive/0.54.tar.gz | tar xvz
+[ ! -d naxsi-0.54 ] && { echo "Could not retrieve the Naxsi archive file. Aborting."; exit 1; }
 
 # Next we create a user for nginx:
 adduser --system --no-create-home --disabled-login --disabled-password --group nginx
 
 # Download and compile the latest version of Nginx:
-cd
-wget -qO- http://nginx.org/download/nginx-1.8.0.tar.gz | tar xvz
+cd /opt/src
+wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.8.0.tar.gz | tar xvz
+[ ! -d nginx-1.8.0 ] && { echo "Could not retrieve Nginx source files. Aborting."; exit 1; }
 cd nginx-1.8.0
 ./configure --add-module=../naxsi-0.54/naxsi_src/ \
   --prefix=/opt/nginx --user=nginx --group=nginx \
-  --with-http_ssl_module --with-http_spdy_module --with-http_realip_module \
-  --without-http_scgi_module --without-http_uwsgi_module \
-  --without-http_fastcgi_module --without-http_autoindex_module
+  --with-http_ssl_module --with-http_spdy_module --with-http_realip_module
 make && make install
 # The "make" command may take some time...
 
-# Set Up Naxsi
-cd ~/naxsi-0.54/nxapi/
-python setup.py install
+# Add Naxsi core rules
 mkdir -p /etc/nginx
-cp ~/naxsi-0.54/naxsi_config/naxsi_core.rules /etc/nginx/
-nano -w /etc/nginx/mysite.rules
+/bin/cp -f /opt/src/naxsi-0.54/naxsi_config/naxsi_core.rules /etc/nginx/
 
-# Copy the following content and paste into nano editor.
+# Add Naxsi whitelist rules needed for Ghost blog.
+# Ref: https://github.com/nbs-system/naxsi/wiki/whitelists
 
-LearningMode; #Enables learning mode
+cat > /etc/nginx/mysite.rules <<'EOF'
+#LearningMode; #Enables learning mode
 SecRulesEnabled;
 #SecRulesDisabled;
 DeniedUrl "/RequestDenied";
@@ -249,65 +322,38 @@ CheckRule "$RFI >= 8" BLOCK;
 CheckRule "$TRAVERSAL >= 4" BLOCK;
 CheckRule "$EVADE >= 4" BLOCK;
 CheckRule "$XSS >= 8" BLOCK;
-BasicRule  wl:1015 "mz:BODY";
-BasicRule  wl:1001 "mz:BODY";
-BasicRule  wl:1205 "mz:BODY";
-BasicRule  wl:1310 "mz:BODY";
-BasicRule  wl:1311 "mz:BODY";
-BasicRule  wl:1200 "mz:BODY";
-BasicRule  wl:1000 "mz:BODY";
-BasicRule  wl:1007 "mz:BODY";
-BasicRule  wl:1008 "mz:BODY";
-BasicRule  wl:1009 "mz:BODY";
-BasicRule  wl:1010 "mz:BODY";
-BasicRule  wl:1011 "mz:BODY";
-BasicRule  wl:1013 "mz:BODY";
-BasicRule  wl:1016 "mz:BODY";
-BasicRule  wl:1100 "mz:BODY";
-BasicRule  wl:1101 "mz:BODY";
-BasicRule  wl:1302 "mz:BODY";
-BasicRule  wl:1303 "mz:BODY";
-BasicRule  wl:1314 "mz:BODY";
-BasicRule  wl:1015 "mz:$BODY_VAR:value";
-BasicRule  wl:1001 "mz:$BODY_VAR:value";
-BasicRule  wl:1200 "mz:$BODY_VAR:value";
-BasicRule  wl:1205 "mz:$BODY_VAR:value";
-BasicRule  wl:1310 "mz:$BODY_VAR:value";
-BasicRule  wl:1311 "mz:$BODY_VAR:value";
-BasicRule  wl:1000 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1001 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1007 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1008 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1009 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1010 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1011 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1013 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1015 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1016 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1100 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1101 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1205 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1302 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1303 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1310 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1311 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1314 "mz:$BODY_VAR:markdown";
-BasicRule  wl:1000 "mz:BODY|NAME";
-BasicRule  wl:1015 "mz:$URL:/ghost/api/v0.1/settings/|ARGS";
-BasicRule  wl:1015 "mz:$URL:/ghost/api/v0.1/settings/|$ARGS_VAR:type";
-BasicRule  wl:1310 "mz:$URL:/ghost/api/v0.1/authentication/setup/|BODY|NAME";
-BasicRule  wl:1311 "mz:$URL:/ghost/api/v0.1/authentication/setup/|BODY|NAME";
+BasicRule  wl:1000 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/users/([0-9]+/)?$|BODY|NAME";
+BasicRule  wl:1000 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/posts/([0-9]+/)?$|BODY|NAME";
+BasicRule  wl:1000 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/tags/([0-9]+/)?$|BODY|NAME";
+BasicRule  wl:1000,1001,1007,1008,1009,1010,1011,1013,1015 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/posts/([0-9]+/)?$|BODY";
+BasicRule  wl:1016,1100,1101,1205,1302,1303,1310,1311,1314 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/posts/([0-9]+/)?$|BODY";
+BasicRule  wl:1000,1001,1007,1008,1009,1010,1011,1013,1015 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/posts/([0-9]+/)?$|$BODY_VAR_X:^markdown$";
+BasicRule  wl:1016,1100,1101,1205,1302,1303,1310,1311,1314 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/posts/([0-9]+/)?$|$BODY_VAR_X:^markdown$";
+BasicRule  wl:1015 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/posts/$|ARGS";
+BasicRule  wl:1015 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/posts/$|$ARGS_VAR_X:^type$";
+BasicRule  wl:1015 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/settings/$|ARGS";
+BasicRule  wl:1015 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/settings/$|$ARGS_VAR_X:^type$";
+BasicRule  wl:1310,1311 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/users/password/$|BODY|NAME";
+BasicRule  wl:1310,1311 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/authentication/setup/$|BODY|NAME";
+BasicRule  wl:1310,1311 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/authentication/passwordreset/$|BODY|NAME";
+BasicRule  wl:1001,1015,1205,1302,1303,1310,1311 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/settings/$|BODY";
+BasicRule  wl:1001,1015,1205,1302,1303,1310,1311 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/settings/$|$BODY_VAR_X:^value$";
+BasicRule  wl:16 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/mail/test/$|BODY";
+BasicRule  wl:2 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/uploads/$|BODY";
+EOF
 
-# Save the file by CTRL-O and Enter and exit nano with CTRL-X.
+# Set up NXAPI (Naxsi log parser, whitelist & report generator)
+# Ref: https://github.com/nbs-system/naxsi/tree/master/nxapi
+# Note: This step is not required for Naxsi to work. You can do it later.
+cd /opt/src/naxsi-0.54/nxapi/
+python setup.py install
 
-# Create the following file:
-nano -w /etc/init/nginx.conf
+# Create the following file to make Nginx autorun:
 
-# Copy and paste the following content to make Nginx autorun:
-
+cat > /etc/init/nginx.conf <<'EOF'
 # nginx
 description "nginx http daemon"
-author "Philipp Klose <me@'thisdomain'.de>"
+author "Philipp Klose <me@[thisdomain].de>"
 start on (filesystem and net-device-up IFACE!=lo)
 stop on runlevel [!2345]
 env DAEMON=/opt/nginx/sbin/nginx
@@ -323,46 +369,56 @@ if [ $? -ne 0 ]
 fi
 end script
 exec $DAEMON
-
-# Save the file by CTRL-O and Enter and exit nano with CTRL-X.
+EOF
 
 # Create the public folder which will hold robots.txt, etc.
-mkdir /var/www/${BLOG_FQDN}/public
+mkdir -p "/var/www/${BLOG_FQDN}/public"
 
 # The only thing left is modifying the Nginx configuration file
-mv /opt/nginx/conf/nginx.conf /opt/nginx/conf/nginx.conf.old
-nginx_conf_url=https://gist.githubusercontent.com/hwdsl2/2556d2cf9d73ba858c63/raw/nginx.conf
-wget -t 3 -T 30 -O /opt/nginx/conf/nginx.conf $nginx_conf_url
+# Download example Nginx.conf at https://gist.github.com/hwdsl2/2556d2cf9d73ba858c63
+cd /opt/nginx/conf || { echo "Failed to change working directory to /opt/nginx/conf. Aborting."; exit 1; }
+/bin/mv -f nginx.conf "nginx.conf.old-$(date +%Y-%m-%d-%H:%M:%S)"
+example_nginx_conf=https://gist.githubusercontent.com/hwdsl2/2556d2cf9d73ba858c63/raw/nginx.conf
+wget -t 3 -T 30 -nv -O nginx.conf $example_nginx_conf
+[ ! -f nginx.conf ] && { echo "Could not retrieve example nginx.conf. Aborting."; exit 1; }
 
 # Replace every placeholder domain with your actual domain name:
-sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" /opt/nginx/conf/nginx.conf
+sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" nginx.conf
 
 # Disable SSL configuration in nginx.conf for now (enable it after you fully set it up)
-sed -i -e "s/listen 443/# listen 443/" -e "s/ssl_/# ssl_/" /opt/nginx/conf/nginx.conf
+sed -i -e "s/listen 443/# listen 443/" -e "s/ssl_/# ssl_/" nginx.conf
 
-# Check the validity of the nginx.conf file and fix errors where necessary:
-/opt/nginx/sbin/nginx -t
+# Check the validity of the nginx.conf file:
+echo; /opt/nginx/sbin/nginx -t; echo
 
 # The output should look like:
 # nginx: the configuration file /opt/nginx/conf/nginx.conf syntax is ok
 # nginx: configuration file /opt/nginx/conf/nginx.conf test is successful
 
-# There is nothing left to do but reboot:
-reboot
+# Finally, start Ghost blog and Nginx:
+su - ghost -s /bin/bash -c "./starter.sh"
+service nginx start
 
-# -------------------------------------------------------------------------------------------
+# Remove temporary file
+/bin/rm -f /tmp/BLOG_FQDN
 
-Next, set up DNS (A Record) to point your blog's domain name to your server's IP.
-When using your blog for the first time, browse to http://YOUR.DOMAIN.NAME/ghost/
-Alternatively, use SSH port forwarding and browse to http://localhost:2368/ghost/
-to create the Admin user of your Ghost blog. Choose a very secure password.
-
-After your blog is set up, follow additional instructions in my tutorial (link below) to:
-https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/#naxsi1
-
-1. Set Up HTTPS for Your Blog (Optional)
-2. Sitemap, Robots.txt and Extras (Optional)
-3. Setting Up E-Mail on Ghost (Optional)
-
-Questions? Refer to the official Ghost Guide: http://support.ghost.org/
-Or feel free to leave a comment on my blog at link above.
+echo
+echo "------------------------------------------------------------------------------------------"
+echo 'Congratulations! Your new Ghost blog setup is complete!'
+echo
+echo "Next, you must set up DNS (A Record) to point ${BLOG_FQDN} to your server's public IP."
+echo "When using your blog for the first time, browse to http://${BLOG_FQDN}/ghost/"
+echo "Or alternatively, set up SSH port forwarding and browse to http://localhost:2368/ghost/"
+echo "to create the Admin user of your Ghost blog. Choose a very secure password."
+echo
+echo "After your blog is set up, follow additional instructions in my tutorial (link below) to:"
+echo "https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/#naxsi1"
+echo
+echo "1. Set Up HTTPS for Your Blog (Optional)"
+echo "2. Sitemap, Robots.txt and Extras (Optional)"
+echo "3. Setting Up E-Mail on Ghost (Optional)"
+echo
+echo "Questions? Refer to the official Ghost Guide: http://support.ghost.org/"
+echo "Or feel free to leave a comment on my blog at link above."
+echo
+echo "Documentation for Naxsi: https://github.com/nbs-system/naxsi/wiki"

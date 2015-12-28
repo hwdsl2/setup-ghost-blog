@@ -1,15 +1,16 @@
-Follow this step-by-step guide to install Ghost blog (https://ghost.org/download) on Ubuntu,
+Follow this step-by-step guide to install Ghost blog (https://ghost.org/) on Ubuntu,
 with Nginx as a reverse proxy and the ModSecurity web application firewall. This guide is based on
 the blog post of Herman Stevens, with important fixes and optimizations added by me (Lin Song).
 
 Link to my tutorial: 
 https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/
+Alternative tutorial for Ghost blog with Naxsi:
+https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/
 Original post by Herman Stevens: 
 https://blog.igbuend.com/dude-looks-like-a-ghost/
 
 Special thanks to these people for help on improving this guide:
-Remy van Elst (https://raymii.org)
-Phil Bayfield (http://phil.io/)
+Remy van Elst (https://raymii.org), Phil Bayfield (http://phil.io/)
 
 This guide can be used with both Ubuntu 14.04 (Trusty) and 12.04 (Precise) servers.
 The only difference is in the install steps for Node.js. See details below.
@@ -123,15 +124,19 @@ apt-get -y install nodejs nodejs-legacy npm
 # -------------------------------------------------------------------------------------------
 (Choose ONE from the two methods below)
 
-IMPORTANT NOTE: Ghost blog supports Node.js versions 0.10.x, 0.12.x and 4.2.x only.
+IMPORTANT: Ghost blog supports Node.js versions 0.10.x, 0.12.x and 4.2.x only.
 
-[Method 1] Installing Node.js via package manager. Follow the steps on this page:
-https://nodesource.com/blog/nodejs-v012-iojs-and-the-nodesource-linux-repositories#installing-node-js-v0-12
+[Method 1] Installing Node.js via package manager.
+  Source: https://nodesource.com/blog/nodejs-v012-iojs-and-the-nodesource-linux-repositories#installingnodejsv012
+
+curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
+sudo apt-get install -y nodejs
 
 [Method 2] Compile node.js from source.
- (NOTE: If you use this method to install node.js, later when a newer version is available,
+  Note: If you use this method to install node.js, later when a newer version is available,
   you may want to repeat these download, compile & install steps to upgrade it.
-  This also applies to other software (e.g. ModSecurity, Nginx) that are compiled from source.)
+  This also applies to other software (e.g. ModSecurity, Nginx) that are compiled from source.
+
 cd
 wget -qO- https://nodejs.org/dist/v0.12.9/node-v0.12.9.tar.gz | tar xvz
 cd node-v0.12.9
@@ -160,7 +165,7 @@ su - ghost -s /bin/bash
 BLOG_FQDN=$(cat /tmp/BLOG_FQDN)
 export BLOG_FQDN
 
-# Get the ghost source (latest version), unzip the archive and install.
+# Get the ghost source (latest version), unzip and install.
 cd
 wget https://ghost.org/zip/ghost-latest.zip
 unzip ghost-latest.zip && rm ghost-latest.zip
@@ -206,7 +211,7 @@ exit
 touch /var/log/nodelog.txt
 chown ghost.ghost /var/log/nodelog.txt
 
-# First download and compile the latest ModSecurity:
+# Download and compile ModSecurity:
 cd
 wget -qO- https://www.modsecurity.org/tarball/2.9.0/modsecurity-2.9.0.tar.gz | tar xvz
 cd modsecurity-2.9.0
@@ -290,15 +295,8 @@ mkdir /var/www/${BLOG_FQDN}/public
 
 # The only thing left is modifying the Nginx configuration file
 mv /opt/nginx/conf/nginx.conf /opt/nginx/conf/nginx.conf.old
-nano -w /opt/nginx/conf/nginx.conf
-
-Now, open your web browser and view my example nginx.conf at: 
-*****************************************************
-https://gist.github.com/hwdsl2/801f73fdd6c032b7539c
-*****************************************************
-To save the contents, click on the "Raw" button at top-right corner,
-press Ctrl-A to select all, Ctrl-C to copy, then paste into nano editor.
-Save the file by CTRL-O and Enter and exit nano with CTRL-X.
+nginx_conf_url=https://gist.githubusercontent.com/hwdsl2/801f73fdd6c032b7539c/raw/nginx.conf
+wget -t 3 -T 30 -O /opt/nginx/conf/nginx.conf $nginx_conf_url
 
 # Replace every placeholder domain with your actual domain name:
 sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" /opt/nginx/conf/nginx.conf
@@ -309,18 +307,18 @@ sed -i -e "s/listen 443/# listen 443/" -e "s/ssl_/# ssl_/" /opt/nginx/conf/nginx
 # Check the validity of the nginx.conf file and fix errors where necessary:
 /opt/nginx/sbin/nginx -t
 
-The output should look like:
-nginx: the configuration file /opt/nginx/conf/nginx.conf syntax is ok
-nginx: configuration file /opt/nginx/conf/nginx.conf test is successful
+# The output should look like:
+# nginx: the configuration file /opt/nginx/conf/nginx.conf syntax is ok
+# nginx: configuration file /opt/nginx/conf/nginx.conf test is successful
 
 # There is nothing left to do but reboot:
 reboot
 
 # -------------------------------------------------------------------------------------------
 
-Next, you must set up DNS (A Record) to point your blog's domain name to your server's IP.
+Next, set up DNS (A Record) to point your blog's domain name to your server's IP.
 When using your blog for the first time, browse to http://YOUR.DOMAIN.NAME/ghost/
-Or alternatively, use SSH port forwarding and browse to http://localhost:2368/ghost/
+Alternatively, use SSH port forwarding and browse to http://localhost:2368/ghost/
 to create the Admin user of your Ghost blog. Choose a very secure password.
 
 After your blog is set up, follow additional instructions in my tutorial (link below) to:

@@ -1,22 +1,16 @@
-*************************************************************************************
-
-[Update] A new Ghost blog version is out. Learn how to install this new version at:
-https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/
-
-*************************************************************************************
-
-Follow this step-by-step guide to install Ghost blog 0.4.2 (https://ghost.org/download) on Ubuntu,
+Follow this step-by-step guide to install Ghost blog (https://ghost.org/) on Ubuntu,
 with Nginx as a reverse proxy and the Naxsi web application firewall. This guide is based on
 the blog post of Herman Stevens, with important fixes and optimizations added by me (Lin Song).
 
 Link to my tutorial: 
 https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/
+Alternative tutorial for Ghost blog with ModSecurity:
+https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/
 Original post by Herman Stevens: 
 https://blog.igbuend.com/dude-looks-like-a-ghost/
 
 Special thanks to these people for help on improving this guide:
-Remy van Elst (https://raymii.org)
-Phil Bayfield (http://phil.io/)
+Remy van Elst (https://raymii.org), Phil Bayfield (http://phil.io/)
 
 This guide can be used with both Ubuntu 14.04 (Trusty) and 12.04 (Precise) servers.
 The only difference is in the install steps for Node.js. See details below.
@@ -130,18 +124,22 @@ apt-get -y install nodejs nodejs-legacy npm
 # -------------------------------------------------------------------------------------------
 (Choose ONE from the two methods below)
 
-IMPORTANT NOTE: Ghost blog 0.4.2 supports Node.js version 0.10.x ONLY.
+IMPORTANT: Ghost blog supports Node.js versions 0.10.x, 0.12.x and 4.2.x only.
 
-[Method 1] Installing Node.js via package manager. Follow the steps on this page:
-https://nodesource.com/blog/nodejs-v012-iojs-and-the-nodesource-linux-repositories#node-js-v0-10
+[Method 1] Installing Node.js via package manager.
+  Source: https://nodesource.com/blog/nodejs-v012-iojs-and-the-nodesource-linux-repositories#installingnodejsv012
+
+curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
+sudo apt-get install -y nodejs
 
 [Method 2] Compile node.js from source.
- (NOTE: If you use this method to install node.js, later when a newer version is available,
+  Note: If you use this method to install node.js, later when a newer version is available,
   you may want to repeat these download, compile & install steps to upgrade it.
-  This also applies to other software (e.g. Naxsi, Nginx) that are compiled from source.)
+  This also applies to other software (e.g. Naxsi, Nginx) that are compiled from source.
+
 cd
-wget -qO- https://nodejs.org/dist/v0.10.41/node-v0.10.41.tar.gz | tar xvz
-cd node-v0.10.41
+wget -qO- https://nodejs.org/dist/v0.12.9/node-v0.12.9.tar.gz | tar xvz
+cd node-v0.12.9
 ./configure --prefix=/usr
 make && make install
 # The "make" command may take some time...
@@ -167,10 +165,10 @@ su - ghost -s /bin/bash
 BLOG_FQDN=$(cat /tmp/BLOG_FQDN)
 export BLOG_FQDN
 
-# Get the ghost source, unzip the archive and install.
+# Get the ghost source (latest version), unzip and install.
 cd
-wget https://ghost.org/zip/ghost-0.4.2.zip
-unzip ghost-0.4.2.zip && rm ghost-0.4.2.zip
+wget https://ghost.org/zip/ghost-latest.zip
+unzip ghost-latest.zip && rm ghost-latest.zip
 npm install --production
 
 # Generate config file and make sure that Ghost uses your actual domain name
@@ -215,7 +213,7 @@ chown ghost.ghost /var/log/nodelog.txt
 
 # Download and extract Naxsi:
 cd
-wget -qO- https://github.com/nbs-system/naxsi/archive/0.53-2.tar.gz | tar xvz
+wget -qO- https://github.com/nbs-system/naxsi/archive/0.54.tar.gz | tar xvz
 
 # Next we create a user for nginx:
 adduser --system --no-create-home --disabled-login --disabled-password --group nginx
@@ -224,7 +222,7 @@ adduser --system --no-create-home --disabled-login --disabled-password --group n
 cd
 wget -qO- http://nginx.org/download/nginx-1.8.0.tar.gz | tar xvz
 cd nginx-1.8.0
-./configure --add-module=../naxsi-0.53-2/naxsi_src/ \
+./configure --add-module=../naxsi-0.54/naxsi_src/ \
   --prefix=/opt/nginx --user=nginx --group=nginx \
   --with-http_ssl_module --with-http_spdy_module --with-http_realip_module \
   --without-http_scgi_module --without-http_uwsgi_module \
@@ -233,10 +231,10 @@ make && make install
 # The "make" command may take some time...
 
 # Set Up Naxsi
-cd ~/naxsi-0.53-2/nx_util/
+cd ~/naxsi-0.54/nxapi/
 python setup.py install
 mkdir -p /etc/nginx
-cp ~/naxsi-0.53-2/naxsi_config/naxsi_core.rules /etc/nginx/
+cp ~/naxsi-0.54/naxsi_config/naxsi_core.rules /etc/nginx/
 nano -w /etc/nginx/mysite.rules
 
 # Copy the following content and paste into nano editor.
@@ -251,48 +249,54 @@ CheckRule "$RFI >= 8" BLOCK;
 CheckRule "$TRAVERSAL >= 4" BLOCK;
 CheckRule "$EVADE >= 4" BLOCK;
 CheckRule "$XSS >= 8" BLOCK;
-BasicRule wl:1000 "mz:$BODY_VAR:html";
-BasicRule wl:1000 "mz:$BODY_VAR:markdown";
-BasicRule wl:1000 "mz:$BODY_VAR:updated_at|NAME";
-BasicRule wl:1000 "mz:$BODY_VAR:updated_by|NAME";
-BasicRule wl:1001 "mz:$BODY_VAR:html";
-BasicRule wl:1001 "mz:$BODY_VAR:markdown";
-BasicRule wl:1007 "mz:$BODY_VAR:html";
-BasicRule wl:1007 "mz:$BODY_VAR:markdown";
-BasicRule wl:1008 "mz:$BODY_VAR:html";
-BasicRule wl:1008 "mz:$BODY_VAR:markdown";
-BasicRule wl:1009 "mz:$BODY_VAR:html";
-BasicRule wl:1009 "mz:$BODY_VAR:markdown";
-BasicRule wl:1010 "mz:$BODY_VAR:html";
-BasicRule wl:1010 "mz:$BODY_VAR:markdown";
-BasicRule wl:1011 "mz:$BODY_VAR:html";
-BasicRule wl:1011 "mz:$BODY_VAR:markdown";
-BasicRule wl:1013 "mz:$BODY_VAR:html";
-BasicRule wl:1013 "mz:$BODY_VAR:markdown";
-BasicRule wl:1015 "mz:$BODY_VAR:html";
-BasicRule wl:1015 "mz:$BODY_VAR:markdown";
-BasicRule wl:1015 "mz:$URL:/ghost/api/v0.1/settings/|$ARGS_VAR:type";
-BasicRule wl:1100 "mz:$BODY_VAR:html";
-BasicRule wl:1100 "mz:$BODY_VAR:markdown";
-BasicRule wl:1101 "mz:$BODY_VAR:html";
-BasicRule wl:1101 "mz:$BODY_VAR:markdown";
-BasicRule wl:1205 "mz:$BODY_VAR:html";
-BasicRule wl:1205 "mz:$BODY_VAR:markdown";
-BasicRule wl:1302 "mz:$BODY_VAR:html";
-BasicRule wl:1302 "mz:$BODY_VAR:markdown";
-BasicRule wl:1303 "mz:$BODY_VAR:html";
-BasicRule wl:1303 "mz:$BODY_VAR:markdown";
-BasicRule wl:1310 "mz:$BODY_VAR:markdown";
-BasicRule wl:1310 "mz:$URL:/ghost/api/v0.1/settings/|$BODY_VAR:activeapps";
-BasicRule wl:1310 "mz:$URL:/ghost/api/v0.1/settings/|$BODY_VAR:installedapps";
-BasicRule wl:1311 "mz:$BODY_VAR:markdown";
-BasicRule wl:1311 "mz:$URL:/ghost/api/v0.1/settings/|$BODY_VAR:activeapps";
-BasicRule wl:1311 "mz:$URL:/ghost/api/v0.1/settings/|$BODY_VAR:installedapps";
-BasicRule wl:1314 "mz:$BODY_VAR:html";
-BasicRule wl:1314 "mz:$BODY_VAR:markdown";
-BasicRule wl:1315 "mz:$HEADERS_VAR:cookie";
-BasicRule wl:1402 "mz:$HEADERS_VAR:content-type";
-BasicRule wl:2 "mz:$URL:/ghost/upload/|BODY";
+BasicRule  wl:1015 "mz:BODY";
+BasicRule  wl:1001 "mz:BODY";
+BasicRule  wl:1205 "mz:BODY";
+BasicRule  wl:1310 "mz:BODY";
+BasicRule  wl:1311 "mz:BODY";
+BasicRule  wl:1200 "mz:BODY";
+BasicRule  wl:1000 "mz:BODY";
+BasicRule  wl:1007 "mz:BODY";
+BasicRule  wl:1008 "mz:BODY";
+BasicRule  wl:1009 "mz:BODY";
+BasicRule  wl:1010 "mz:BODY";
+BasicRule  wl:1011 "mz:BODY";
+BasicRule  wl:1013 "mz:BODY";
+BasicRule  wl:1016 "mz:BODY";
+BasicRule  wl:1100 "mz:BODY";
+BasicRule  wl:1101 "mz:BODY";
+BasicRule  wl:1302 "mz:BODY";
+BasicRule  wl:1303 "mz:BODY";
+BasicRule  wl:1314 "mz:BODY";
+BasicRule  wl:1015 "mz:$BODY_VAR:value";
+BasicRule  wl:1001 "mz:$BODY_VAR:value";
+BasicRule  wl:1200 "mz:$BODY_VAR:value";
+BasicRule  wl:1205 "mz:$BODY_VAR:value";
+BasicRule  wl:1310 "mz:$BODY_VAR:value";
+BasicRule  wl:1311 "mz:$BODY_VAR:value";
+BasicRule  wl:1000 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1001 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1007 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1008 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1009 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1010 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1011 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1013 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1015 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1016 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1100 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1101 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1205 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1302 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1303 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1310 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1311 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1314 "mz:$BODY_VAR:markdown";
+BasicRule  wl:1000 "mz:BODY|NAME";
+BasicRule  wl:1015 "mz:$URL:/ghost/api/v0.1/settings/|ARGS";
+BasicRule  wl:1015 "mz:$URL:/ghost/api/v0.1/settings/|$ARGS_VAR:type";
+BasicRule  wl:1310 "mz:$URL:/ghost/api/v0.1/authentication/setup/|BODY|NAME";
+BasicRule  wl:1311 "mz:$URL:/ghost/api/v0.1/authentication/setup/|BODY|NAME";
 
 # Save the file by CTRL-O and Enter and exit nano with CTRL-X.
 
@@ -327,15 +331,8 @@ mkdir /var/www/${BLOG_FQDN}/public
 
 # The only thing left is modifying the Nginx configuration file
 mv /opt/nginx/conf/nginx.conf /opt/nginx/conf/nginx.conf.old
-nano -w /opt/nginx/conf/nginx.conf
-
-Now, open your web browser and view my example nginx.conf at: 
-*****************************************************
-https://gist.github.com/hwdsl2/2556d2cf9d73ba858c63
-*****************************************************
-To save the contents, click on the "Raw" button at top-right corner,
-press Ctrl-A to select all, Ctrl-C to copy, then paste into nano editor.
-Save the file by CTRL-O and Enter and exit nano with CTRL-X.
+nginx_conf_url=https://gist.githubusercontent.com/hwdsl2/2556d2cf9d73ba858c63/raw/nginx.conf
+wget -t 3 -T 30 -O /opt/nginx/conf/nginx.conf $nginx_conf_url
 
 # Replace every placeholder domain with your actual domain name:
 sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" /opt/nginx/conf/nginx.conf
@@ -346,27 +343,26 @@ sed -i -e "s/listen 443/# listen 443/" -e "s/ssl_/# ssl_/" /opt/nginx/conf/nginx
 # Check the validity of the nginx.conf file and fix errors where necessary:
 /opt/nginx/sbin/nginx -t
 
-The output should look like:
-nginx: the configuration file /opt/nginx/conf/nginx.conf syntax is ok
-nginx: configuration file /opt/nginx/conf/nginx.conf test is successful
+# The output should look like:
+# nginx: the configuration file /opt/nginx/conf/nginx.conf syntax is ok
+# nginx: configuration file /opt/nginx/conf/nginx.conf test is successful
 
 # There is nothing left to do but reboot:
 reboot
 
 # -------------------------------------------------------------------------------------------
 
-Next, you must set up DNS (A Record) to point your blog's domain name to your server's IP.
+Next, set up DNS (A Record) to point your blog's domain name to your server's IP.
 When using your blog for the first time, browse to http://YOUR.DOMAIN.NAME/ghost/
-Or alternatively, use SSH port forwarding and browse to http://localhost:2368/ghost/
+Alternatively, use SSH port forwarding and browse to http://localhost:2368/ghost/
 to create the Admin user of your Ghost blog. Choose a very secure password.
 
 After your blog is set up, follow additional instructions in my tutorial (link below) to:
 https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/#naxsi1
 
-1. Check for Naxsi rules to be whitelisted (Highly Recommended)
-2. Set Up HTTPS for Your Blog (Optional)
-3. Sitemap, Robots.txt and Extras (Optional)
-4. Setting Up E-Mail on Ghost (Optional)
+1. Set Up HTTPS for Your Blog (Optional)
+2. Sitemap, Robots.txt and Extras (Optional)
+3. Setting Up E-Mail on Ghost (Optional)
 
 Questions? Refer to the official Ghost Guide: http://support.ghost.org/
 Or feel free to leave a comment on my blog at link above.

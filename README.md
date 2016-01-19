@@ -1,8 +1,8 @@
-## Ghost Blog Auto Install Script with Nginx and Naxsi
+## Ghost Blog Auto Setup Script with Nginx and Naxsi
 
 Use this automated bash script to install the latest <a href="https://ghost.org" target="_blank">Ghost blog</a> on Ubuntu, with Nginx as a reverse proxy and Naxsi web application firewall.
 
-This script must be run on a **freshly installed** Ubuntu 14.04 (Trusty) or 12.04 (Precise) system. It is intended for use on a Virtual Private Server (VPS) or dedicated server. Do **NOT** run this script on your PC or Mac!
+This script should only be used on a **freshly installed** Ubuntu 14.04 (Trusty) or 12.04 (Precise) system. It is intended for use on a Virtual Private Server (VPS) or dedicated server. **DO NOT** run this script on your PC or Mac!
 
 #### <a href="https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/" target="_blank">Link to my blog article with detailed information</a>   
 <a href="https://gist.github.com/hwdsl2/1b1804cad601928472e7" target="_blank">Alternative script for Ghost blog with ModSecurity</a>   
@@ -18,7 +18,7 @@ bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 
 ### Copyright and license
 
-Copyright (C) 2015&nbsp;Lin Song&nbsp;&nbsp;&nbsp;<a href="https://www.linkedin.com/in/linsongui" target="_blank"><img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_profile_bluetxt_80x15.png" width="80" height="15" border="0" alt="View my profile on LinkedIn"></a>   
+Copyright (C) 2015-2016&nbsp;Lin Song&nbsp;&nbsp;&nbsp;<a href="https://www.linkedin.com/in/linsongui" target="_blank"><img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_viewmy_160x25.png" width="160" height="25" border="0" alt="View my profile on LinkedIn"></a>    
 Based on the work of Herman Stevens (Copyright 2013)
 
 Special thanks to <a href="https://raymii.org" target="_blank">Remy van Elst</a> and <a href="https://philio.me" target="_blank">Phil Bayfield</a> for their helpful suggestions.

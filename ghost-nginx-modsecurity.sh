@@ -3,11 +3,11 @@
 # Use this automated bash script to install the latest Ghost blog on Ubuntu,
 # with Nginx as a reverse proxy and ModSecurity web application firewall.
 #
-# This script must be run on a *freshly installed* Ubuntu 14.04 or 12.04 system.
-# It is intended for use on a Virtual Private Server (VPS) or dedicated server. 
-# Do *NOT* run this script on your PC or Mac!
+# This script should only be used on *freshly installed* Ubuntu 14.04/12.04 systems.
+# It is intended for use on a Virtual Private Server (VPS) or dedicated server.
+# *DO NOT* run this script on your PC or Mac!
 #
-# Copyright (C) 2015 Lin Song
+# Copyright (C) 2015-2016 Lin Song
 # Based on the work of Herman Stevens (Copyright 2013)
 #
 # This program is free software: you can redistribute it and/or modify it under
@@ -21,7 +21,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see http://www.gnu.org/licenses/.
 
-if [ "$(lsb_release -si)" != "Ubuntu" ]; then
+if [ "$(lsb_release -si 2>/dev/null)" != "Ubuntu" ]; then
   echo "Looks like you aren't running this script on a Ubuntu system."
   exit 1
 fi
@@ -54,10 +54,10 @@ echo "$1"
 echo
 echo 'Please double check. If this is not correct, your blog will NOT work!'
 echo
-echo 'IMPORTANT:'
-echo 'This script must be run on a *freshly installed* Ubuntu 14.04 or 12.04 system.'
+echo 'IMPORTANT NOTES:'
+echo 'This script should only be used on *freshly installed* Ubuntu 14.04/12.04 systems.'
 echo 'It is intended for use on a Virtual Private Server (VPS) or dedicated server.'
-echo 'Do *NOT* run this script on your PC or Mac!'
+echo '*DO NOT* run this script on your PC or Mac!'
 echo
 
 read -r -p "Confirm and proceed with the install? [y/N] " response
@@ -134,7 +134,7 @@ maxretry = 5
 
 # Modify the iptables configuration
 # Make those rules persistent using the package "iptables-persistent".
-[ -f /etc/iptables/rules.v4 ] && /bin/cp -f /etc/iptables/rules.v4 "/etc/iptables/rules.v4.old-$(date +%Y-%m-%d-%H:%M:%S)"
+/bin/cp -f /etc/iptables/rules.v4 "/etc/iptables/rules.v4.old-$(date +%Y-%m-%d-%H:%M:%S)" 2>/dev/null
 service iptables-persistent start
 iptables -P INPUT ACCEPT
 iptables -P FORWARD ACCEPT
@@ -154,11 +154,12 @@ iptables -A INPUT -p icmp --icmp-type 4 -j ACCEPT
 iptables -A INPUT -p icmp --icmp-type 8 -j ACCEPT
 iptables -A INPUT -p icmp --icmp-type 11 -j ACCEPT
 iptables -A INPUT -p icmp -j DROP
-# This line is not needed if you configured a non-standard SSH port:
+# Allow DHCP traffic
+-A INPUT -p udp --dport 67:68 --sport 67:68 -j ACCEPT
+# Delete the next line if you configured a non-standard SSH port:
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT
-# IMPORTANT:
-# If you have configured a non-standard SSH port (e.g. 6543),
-# you must uncomment this line and replace 6543 with the new port:
+# IMPORTANT: If you configured a non-standard SSH port (e.g. 6543),
+# you must uncomment the next line and replace 6543 with your new port.
 # iptables -A INPUT -p tcp --dport 6543 -j ACCEPT
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 iptables -A INPUT -p tcp --dport 443 -j ACCEPT
@@ -246,7 +247,7 @@ unzip -o ghost-latest.zip && /bin/rm -f ghost-latest.zip
 npm install --production
 
 # Generate config file and make sure that Ghost uses your actual domain name
-[ -f config.js ] && /bin/cp -f config.js "config.js.old-$(date +%Y-%m-%d-%H:%M:%S)"
+/bin/cp -f config.js "config.js.old-$(date +%Y-%m-%d-%H:%M:%S)" 2>/dev/null
 sed "s/my-ghost-blog.com/${BLOG_FQDN}/" <config.example.js >config.js
 
 # We need to make certain that Ghost will start automatically after a reboot
@@ -290,11 +291,11 @@ chown ghost.ghost /var/log/nodelog.txt
 # We use ModSecurity's sources from "nginx_refactoring" branch for improved stability.
 # Ref: https://mescanef.net/blog/2015/11/nginx-with-modsecurity/
 
-cd /opt/src
+cd /opt/src || { echo "Failed to change working directory to /opt/src. Aborting."; exit 1; }
 wget -t 3 -T 30 -nv -O nginx_refactoring.zip https://github.com/SpiderLabs/ModSecurity/archive/nginx_refactoring.zip
 [ ! -f nginx_refactoring.zip ] && { echo "Could not retrieve ModSecurity source files. Aborting."; exit 1; }
 unzip -o nginx_refactoring.zip && /bin/rm -f nginx_refactoring.zip
-cd ModSecurity-nginx_refactoring
+cd ModSecurity-nginx_refactoring || { echo "Failed to change directory to /opt/src/ModSecurity-nginx_refactoring. Aborting."; exit 1; }
 ./autogen.sh
 ./configure --enable-standalone-module --disable-mlogc
 make
@@ -304,10 +305,10 @@ make
 adduser --system --no-create-home --disabled-login --disabled-password --group nginx
 
 # Download and compile the latest version of Nginx:
-cd /opt/src
+cd /opt/src || { echo "Failed to change working directory to /opt/src. Aborting."; exit 1; }
 wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.8.0.tar.gz | tar xvz
 [ ! -d nginx-1.8.0 ] && { echo "Could not retrieve Nginx source files. Aborting."; exit 1; }
-cd nginx-1.8.0
+cd nginx-1.8.0 || { echo "Failed to change directory to /opt/src/nginx-1.8.0. Aborting."; exit 1; }
 ./configure --add-module=../ModSecurity-nginx_refactoring/nginx/modsecurity \
   --prefix=/opt/nginx --user=nginx --group=nginx \
   --with-http_ssl_module --with-http_spdy_module --with-http_realip_module

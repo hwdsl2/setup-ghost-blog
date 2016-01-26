@@ -1,14 +1,14 @@
 ## Ghost Blog Auto Setup Script with Nginx and ModSecurity
 
-Use this automated bash script to install the latest <a href="https://ghost.org" target="_blank">Ghost blog</a> on Ubuntu, with Nginx as a reverse proxy and ModSecurity web application firewall.
+Script to install your own <a href="https://ghost.org/about" target="_blank">Ghost blog</a> on Ubuntu, with <a href="http://nginx.org/en/" target="_blank">Nginx</a> (as a reverse proxy) and <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> web application firewall.
 
-This script should only be used on a **freshly installed** Ubuntu 14.04 (Trusty) or 12.04 (Precise) system. It is intended for use on a Virtual Private Server (VPS) or dedicated server. **DO NOT** run this script on your PC or Mac!
+This script should only be used on **freshly installed** Ubuntu 14.04 (Trusty) or 12.04 (Precise) systems. It is intended for use on a Virtual Private Server (VPS) or dedicated server. **DO NOT** run this script on your PC or Mac!
 
 #### <a href="https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/" target="_blank">Link to my blog article with detailed information</a>   
 <a href="https://gist.github.com/hwdsl2/42841f9edad3f1741436" target="_blank">Alternative script for Ghost blog with Naxsi</a>   
 <a href="https://blog.igbuend.com/dude-looks-like-a-ghost/" target="_blank">Original post by Herman Stevens</a>   
 
-### How to Use
+### How To Use
 ```
 wget https://gist.github.com/hwdsl2/1b1804cad601928472e7/raw/ghost-nginx-modsecurity.sh -O ghost-nginx-modsecurity.sh
 bash ghost-nginx-modsecurity.sh BLOG_FULL_DOMAIN_NAME

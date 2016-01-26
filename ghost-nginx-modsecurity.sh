@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Use this automated bash script to install the latest Ghost blog on Ubuntu,
-# with Nginx as a reverse proxy and ModSecurity web application firewall.
+# with Nginx (as a reverse proxy) and ModSecurity web application firewall.
 #
 # This script should only be used on *freshly installed* Ubuntu 14.04/12.04 systems.
 # It is intended for use on a Virtual Private Server (VPS) or dedicated server.
@@ -306,9 +306,9 @@ adduser --system --no-create-home --disabled-login --disabled-password --group n
 
 # Download and compile the latest version of Nginx:
 cd /opt/src || { echo "Failed to change working directory to /opt/src. Aborting."; exit 1; }
-wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.8.0.tar.gz | tar xvz
-[ ! -d nginx-1.8.0 ] && { echo "Could not retrieve Nginx source files. Aborting."; exit 1; }
-cd nginx-1.8.0 || { echo "Failed to change directory to /opt/src/nginx-1.8.0. Aborting."; exit 1; }
+wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.8.1.tar.gz | tar xvz
+[ ! -d nginx-1.8.1 ] && { echo "Could not retrieve Nginx source files. Aborting."; exit 1; }
+cd nginx-1.8.1 || { echo "Failed to change directory to /opt/src/nginx-1.8.1. Aborting."; exit 1; }
 ./configure --add-module=../ModSecurity-nginx_refactoring/nginx/modsecurity \
   --prefix=/opt/nginx --user=nginx --group=nginx \
   --with-http_ssl_module --with-http_spdy_module --with-http_realip_module

@@ -1,14 +1,14 @@
 ## Ghost Blog Auto Setup Script with Nginx and Naxsi
 
-Use this automated bash script to install the latest <a href="https://ghost.org" target="_blank">Ghost blog</a> on Ubuntu, with Nginx as a reverse proxy and Naxsi web application firewall.
+Script to install your own <a href="https://ghost.org/about" target="_blank">Ghost blog</a> on Ubuntu, with <a href="http://nginx.org/en/" target="_blank">Nginx</a> (as a reverse proxy) and <a href="https://www.owasp.org/index.php/OWASP_NAXSI_Project" target="_blank">Naxsi</a> web application firewall.
 
-This script should only be used on a **freshly installed** Ubuntu 14.04 (Trusty) or 12.04 (Precise) system. It is intended for use on a Virtual Private Server (VPS) or dedicated server. **DO NOT** run this script on your PC or Mac!
+This script should only be used on **freshly installed** Ubuntu 14.04 (Trusty) or 12.04 (Precise) systems. It is intended for use on a Virtual Private Server (VPS) or dedicated server. **DO NOT** run this script on your PC or Mac!
 
 #### <a href="https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/" target="_blank">Link to my blog article with detailed information</a>   
 <a href="https://gist.github.com/hwdsl2/1b1804cad601928472e7" target="_blank">Alternative script for Ghost blog with ModSecurity</a>   
 <a href="https://blog.igbuend.com/dude-looks-like-a-ghost/" target="_blank">Original post by Herman Stevens</a>   
 
-### How to Use
+### How To Use
 ```
 wget https://gist.github.com/hwdsl2/42841f9edad3f1741436/raw/ghost-nginx-naxsi.sh -O ghost-nginx-naxsi.sh
 bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME

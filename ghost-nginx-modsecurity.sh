@@ -209,8 +209,8 @@ fi
   This also applies to other software (e.g. Modsecurity, Nginx) that are compiled from source.
 
 cd /opt/src
-wget -qO- https://nodejs.org/dist/v0.12.9/node-v0.12.9.tar.gz | tar xvz
-cd node-v0.12.9
+wget -qO- https://nodejs.org/download/release/v0.12.10/node-v0.12.10.tar.gz | tar xvz
+cd node-v0.12.10
 ./configure --prefix=/usr
 make && make install
 # The "make" command may take some time...

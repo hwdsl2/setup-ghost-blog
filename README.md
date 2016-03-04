@@ -2,11 +2,10 @@
 
 Script to install your own <a href="https://ghost.org/about" target="_blank">Ghost blog</a> on Ubuntu, with <a href="http://nginx.org/en/" target="_blank">Nginx</a> (as a reverse proxy) and <a href="https://www.owasp.org/index.php/OWASP_NAXSI_Project" target="_blank">Naxsi</a> web application firewall.
 
-This script should only be used on **freshly installed** Ubuntu 14.04 (Trusty) or 12.04 (Precise) systems. It is intended for use on a Virtual Private Server (VPS) or dedicated server. **DO NOT** run this script on your PC or Mac!
+This script should only be used on a Virtual Private Server (VPS) or dedicated server, with **freshly installed** Ubuntu 14.04 (Trusty) or 12.04 (Precise). **DO NOT** run this script on your PC or Mac!
 
 #### <a href="https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/" target="_blank">Link to my blog article with detailed information</a>   
-<a href="https://gist.github.com/hwdsl2/1b1804cad601928472e7" target="_blank">Alternative script for Ghost blog with ModSecurity</a>   
-<a href="https://blog.igbuend.com/dude-looks-like-a-ghost/" target="_blank">Original post by Herman Stevens</a>   
+<a href="https://gist.github.com/hwdsl2/1b1804cad601928472e7" target="_blank">Alternative script for Ghost blog with ModSecurity</a>
 
 ### How To Use
 ```
@@ -19,7 +18,7 @@ bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 ### Copyright and license
 
 Copyright (C) 2015-2016&nbsp;Lin Song&nbsp;&nbsp;&nbsp;<a href="https://www.linkedin.com/in/linsongui" target="_blank"><img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_viewmy_160x25.png" width="160" height="25" border="0" alt="View my profile on LinkedIn"></a>    
-Based on the work of Herman Stevens (Copyright 2013)
+Based on <a href="https://blog.igbuend.com/dude-looks-like-a-ghost/" target="_blank">the work of Herman Stevens</a> (Copyright 2013)
 
 Special thanks to <a href="https://raymii.org" target="_blank">Remy van Elst</a> and <a href="https://philio.me" target="_blank">Phil Bayfield</a> for their helpful suggestions.
 

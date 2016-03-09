@@ -2,7 +2,8 @@
 
 Script to install your own <a href="https://ghost.org/about" target="_blank">Ghost blog</a> on Ubuntu, with <a href="http://nginx.org/en/" target="_blank">Nginx</a> (as a reverse proxy) and <a href="https://www.owasp.org/index.php/OWASP_NAXSI_Project" target="_blank">Naxsi</a> web application firewall.
 
-This script should only be used on a Virtual Private Server (VPS) or dedicated server, with **freshly installed** Ubuntu 14.04 (Trusty) or 12.04 (Precise). **DO NOT** run this script on your PC or Mac!
+It should only be used on a Virtual Private Server (VPS) or dedicated server, with **freshly installed** Ubuntu 14.04/12.04 LTS.   
+WARNING: **DO NOT** run this script on your PC or Mac!
 
 #### <a href="https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/" target="_blank">Link to my blog article with detailed information</a>   
 <a href="https://gist.github.com/hwdsl2/1b1804cad601928472e7" target="_blank">Alternative script for Ghost blog with ModSecurity</a>

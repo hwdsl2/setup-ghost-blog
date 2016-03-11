@@ -3,9 +3,8 @@
 # Use this automated bash script to install the latest Ghost blog on Ubuntu,
 # with Nginx (as a reverse proxy) and Naxsi web application firewall.
 #
-# This script should only be used on *freshly installed* Ubuntu 14.04/12.04 systems.
-# It is intended for use on a Virtual Private Server (VPS) or dedicated server.
-# *DO NOT* run this script on your PC or Mac!
+# This script should only be used on a Virtual Private Server (VPS) or dedicated server,
+# with *freshly installed* Ubuntu 14.04/12.04. *DO NOT* run this script on your PC or Mac!
 #
 # Copyright (C) 2015-2016 Lin Song
 # Based on the work of Herman Stevens (Copyright 2013)
@@ -46,18 +45,18 @@ if [ "$1" = "" ] || [ "$1" = "BLOG_FULL_DOMAIN_NAME" ]; then
 fi
 
 clear
-echo 'Welcome! This script installs Ghost blog with Nginx and Naxsi.'
+echo 'Welcome! This script installs Ghost blog (https://ghost.org) on your server,'
+echo 'with Nginx (as a reverse proxy) and Naxsi web application firewall.'
 echo
-echo 'The full domain name you specified for your new Ghost blog is:'
+echo 'The full domain name you specified for your new blog is:'
 echo
 echo "$1"
 echo
-echo 'Please double check. If this is not correct, your blog will NOT work!'
+echo 'Please double check! If this is not correct, your blog will NOT work!'
 echo
-echo 'IMPORTANT NOTES:'
-echo 'This script should only be used on *freshly installed* Ubuntu 14.04/12.04 systems.'
-echo 'It is intended for use on a Virtual Private Server (VPS) or dedicated server.'
-echo '*DO NOT* run this script on your PC or Mac!'
+echo 'IMPORTANT NOTE:'
+echo 'This script should only be used on a Virtual Private Server (VPS) or dedicated server,'
+echo 'with *freshly installed* Ubuntu 14.04/12.04. *DO NOT* run this script on your PC or Mac!'
 echo
 
 read -r -p "Confirm and proceed with the install? [y/N] " response

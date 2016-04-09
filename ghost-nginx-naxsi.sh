@@ -4,7 +4,7 @@
 # with Nginx (as a reverse proxy) and Naxsi web application firewall.
 #
 # This script should only be used on a Virtual Private Server (VPS) or dedicated server,
-# with *freshly installed* Ubuntu 14.04/12.04. *DO NOT* run this on your PC or Mac!
+# with *freshly installed* Ubuntu 16.04/14.04/12.04. *DO NOT* run this on your PC or Mac!
 #
 # Copyright (C) 2015-2016 Lin Song
 # Based on the work of Herman Stevens (Copyright 2013)
@@ -25,8 +25,9 @@ if [ "$(lsb_release -si 2>/dev/null)" != "Ubuntu" ]; then
   exit 1
 fi
 
-if [ "$(lsb_release -sr)" != "14.04" ] && [ "$(lsb_release -sr)" != "12.04" ]; then
-  echo "Sorry, this script only supports Ubuntu versions 14.04 and 12.04."
+os_ver="$(lsb_release -sr)"
+if [ "$os_ver" != "16.04" ] && [ "$os_ver" != "14.04" ] && [ "$os_ver" != "12.04" ]; then
+  echo "This script only supports Ubuntu versions 16.04, 14.04 or 12.04."
   exit 1
 fi
 
@@ -56,12 +57,13 @@ echo 'Please double check. This MUST be correct for your blog to work!'
 echo
 echo 'IMPORTANT NOTE:'
 echo 'This script should only be used on a Virtual Private Server (VPS) or dedicated server,'
-echo 'with *freshly installed* Ubuntu 14.04/12.04. *DO NOT* run this script on your PC or Mac!'
+echo 'with *freshly installed* Ubuntu 16.04/14.04/12.04 LTS.'
+echo '*DO NOT* run this script on your PC or Mac!'
 echo
 
 read -r -p "Confirm and proceed with the install? [y/N] " response
 case $response in
-    [yY][eE][sS]|[yY]) 
+    [yY][eE][sS]|[yY])
         echo
         echo "Please be patient. Setup is continuing..."
         echo
@@ -165,22 +167,22 @@ service fail2ban start
 (Optional) If your server has IPv6 enabled, you may also want to configure IP6Tables
  by editing the file "/etc/iptables/rules.v6". Search for related tutorials on the web.
 
-Next, we need to install Node.js. See separate steps for Ubuntu 14.04 and 12.04 below.
+Next, we need to install Node.js. See separate steps for Ubuntu 16.04/14.04 and 12.04 below.
  (Check Ubuntu version: lsb_release -sr)
 
--------------------------------------------------------------------------------------------
-* Steps for Ubuntu 14.04 (Trusty) ONLY *
--------------------------------------------------------------------------------------------
+-------------------------------------------------------
+* Steps for Ubuntu 16.04 (Xenial) and 14.04 (Trusty) *
+-------------------------------------------------------
 '
 
-if [ "$(lsb_release -sr)" = "14.04" ]; then
+if [ "$os_ver" = "16.04" ] || [ "$os_ver" = "14.04" ]; then
   apt-get -y install nodejs nodejs-legacy npm
 fi
 
 : '
--------------------------------------------------------------------------------------------
-* Steps for Ubuntu 12.04 (Precise) ONLY *
--------------------------------------------------------------------------------------------
+-----------------------------------------
+ Steps for Ubuntu 12.04 (Precise) ONLY *
+-----------------------------------------
 (Choose ONE from the two methods below)
 
 Note: Ghost blog supports Node.js versions 0.10.x, 0.12.x and 4.2.x only.
@@ -189,7 +191,7 @@ Note: Ghost blog supports Node.js versions 0.10.x, 0.12.x and 4.2.x only.
   Source: https://nodesource.com/blog/nodejs-v012-iojs-and-the-nodesource-linux-repositories#installingnodejsv012
 '
 
-if [ "$(lsb_release -sr)" = "12.04" ]; then
+if [ "$os_ver" = "12.04" ]; then
   curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
   apt-get -y install nodejs
 fi
@@ -210,7 +212,7 @@ make && make install
 # -------------------------------------------------------------------------------------------
 '
 
-# Instructions below are for BOTH Ubuntu 14.04 and 12.04.
+# Instructions below are for all 3 Ubuntu versions.
 
 # To keep your Ghost blog running, install "forever".
 npm install forever -g
@@ -219,9 +221,8 @@ npm install forever -g
 mkdir -p /var/www
 useradd -d "/var/www/${BLOG_FQDN}" -m -s /bin/false ghost
 
-# Stop running Ghost blog and Nginx processes, if any.
+# Stop running Ghost blog processes, if any.
 su - ghost -s /bin/bash -c "forever stopall"
-service nginx stop
 
 # Switch to user "ghost".
 # REMOVE <<'SU_END' if running script manually.
@@ -342,7 +343,7 @@ EOF
 cd /opt/src/naxsi-0.54/nxapi/ || { echo "Failed to change directory to /opt/src/naxsi-0.54/nxapi. Aborting."; exit 1; }
 python setup.py install
 
-# Create the following file to make Nginx autorun:
+# Create the following files to make Nginx autorun:
 
 cat > /etc/init/nginx.conf <<'EOF'
 # nginx
@@ -364,6 +365,31 @@ fi
 end script
 exec $DAEMON
 EOF
+
+if [ -d /lib/systemd/system ]; then
+
+cat > /lib/systemd/system/nginx.service <<'EOF'
+[Unit]
+Description=The NGINX HTTP and reverse proxy server
+After=syslog.target network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=forking
+PIDFile=/opt/nginx/logs/nginx.pid
+ExecStartPre=/opt/nginx/sbin/nginx -t
+ExecStart=/opt/nginx/sbin/nginx
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable nginx.service
+
+fi
 
 # Create the public folder which will hold robots.txt, etc.
 mkdir -p "/var/www/${BLOG_FQDN}/public"
@@ -391,7 +417,7 @@ echo; /opt/nginx/sbin/nginx -t; echo
 
 # Finally, start Ghost blog and Nginx:
 su - ghost -s /bin/bash -c "./starter.sh"
-service nginx start
+service nginx restart
 
 # Remove temporary file
 /bin/rm -f /tmp/BLOG_FQDN

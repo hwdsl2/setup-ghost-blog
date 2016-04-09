@@ -2,10 +2,15 @@
 
 Scripts to install your own <a href="https://ghost.org" target="_blank">Ghost blog</a>, with <a href="http://nginx.org/en/" target="_blank">Nginx</a> (as a reverse proxy) and <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> or <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a> web application firewall.
 
-They should only be used on a Virtual Private Server (VPS) or dedicated server, with **freshly installed** Ubuntu 14.04/12.04.   
-WARNING: **DO NOT** run these scripts on your PC or Mac!
+They are intended for use on a Virtual Private Server (VPS) or dedicated server, with freshly installed Ubuntu system.   
 
 #### <a href="https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/" target="_blank">Link to my blog article with detailed information</a>   
+
+### Requirements
+
+A dedicated server or VPS, with **freshly installed** Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise).   
+
+:warning: **DO NOT** run these scripts on your PC or Mac!
 
 ### How To Use
 

@@ -136,6 +136,7 @@ maxretry = 5
 # Make those rules persistent using the package "iptables-persistent".
 /bin/cp -f /etc/iptables/rules.v4 "/etc/iptables/rules.v4.old-$(date +%Y-%m-%d-%H:%M:%S)" 2>/dev/null
 service iptables-persistent start
+service netfilter-persistent start
 iptables -P INPUT ACCEPT
 iptables -P FORWARD ACCEPT
 iptables -P OUTPUT ACCEPT
@@ -149,7 +150,7 @@ iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -d 127.0.0.0/8 -j REJECT
 iptables -A INPUT -p icmp -j ACCEPT
 # Allow DHCP traffic
--A INPUT -p udp --dport 67:68 --sport 67:68 -j ACCEPT
+iptables -A INPUT -p udp --dport 67:68 --sport 67:68 -j ACCEPT
 # Delete the next line if you configured a non-standard SSH port:
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 # IMPORTANT: If you configured a non-standard SSH port (e.g. 6543),
@@ -161,6 +162,7 @@ iptables -A INPUT -j DROP
 iptables -A FORWARD -j DROP
 service fail2ban stop
 /etc/init.d/iptables-persistent save
+netfilter-persistent save
 service fail2ban start
 
 : '

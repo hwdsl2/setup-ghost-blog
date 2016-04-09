@@ -4,7 +4,7 @@
 # with Nginx (as a reverse proxy) and ModSecurity web application firewall.
 #
 # This script should only be used on a Virtual Private Server (VPS) or dedicated server,
-# with *freshly installed* Ubuntu 14.04/12.04. *DO NOT* run this script on your PC or Mac!
+# with *freshly installed* Ubuntu 14.04/12.04. *DO NOT* run this on your PC or Mac!
 #
 # Copyright (C) 2015-2016 Lin Song
 # Based on the work of Herman Stevens (Copyright 2013)
@@ -52,7 +52,7 @@ echo 'The full domain name you specified for your new blog is:'
 echo
 echo "$1"
 echo
-echo 'Please double check! If this is not correct, your blog will NOT work!'
+echo 'Please double check. This MUST be correct for your blog to work!'
 echo
 echo 'IMPORTANT NOTE:'
 echo 'This script should only be used on a Virtual Private Server (VPS) or dedicated server,'
@@ -146,13 +146,7 @@ iptables -A INPUT -m conntrack --ctstate INVALID -j DROP
 iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -d 127.0.0.0/8 -j REJECT
-iptables -A INPUT -p icmp --fragment -j DROP
-iptables -A INPUT -p icmp --icmp-type 0 -j ACCEPT
-iptables -A INPUT -p icmp --icmp-type 3 -j ACCEPT
-iptables -A INPUT -p icmp --icmp-type 4 -j ACCEPT
-iptables -A INPUT -p icmp --icmp-type 8 -j ACCEPT
-iptables -A INPUT -p icmp --icmp-type 11 -j ACCEPT
-iptables -A INPUT -p icmp -j DROP
+iptables -A INPUT -p icmp -j ACCEPT
 # Allow DHCP traffic
 -A INPUT -p udp --dport 67:68 --sport 67:68 -j ACCEPT
 # Delete the next line if you configured a non-standard SSH port:

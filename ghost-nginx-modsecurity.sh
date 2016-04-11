@@ -124,7 +124,7 @@ sed "s/Port 22/Port 6543/" </etc/ssh/sshd_config >/etc/ssh/sshd_config.new
 service ssh restart
 
 # Let Fail2Ban monitor the non-standard SSH port
-[ -f /etc/fail2ban/jail.local ] && /bin/cp -f /etc/fail2ban/jail.local /etc/fail2ban/jail.local.old
+/bin/cp -f /etc/fail2ban/jail.local /etc/fail2ban/jail.local.old 2>/dev/null
 nano -w /etc/fail2ban/jail.local
 
 # Copy the following content and paste into nano editor.
@@ -231,11 +231,12 @@ export BLOG_FQDN
 
 # Get the ghost blog source (latest version), unzip and install.
 wget -t 3 -T 30 -nv -O ghost-latest.zip https://ghost.org/zip/ghost-latest.zip
+[ ! -f ghost-latest.zip ] && { echo "Could not retrieve Ghost blog source file. Aborting."; exit 1; }
 unzip -o ghost-latest.zip && /bin/rm -f ghost-latest.zip
 npm install --production
 
 # Generate config file and make sure that Ghost uses your actual domain name
-/bin/cp -f config.js config.js.old
+/bin/cp -f config.js config.js.old 2>/dev/null
 sed "s/my-ghost-blog.com/${BLOG_FQDN}/" <config.example.js >config.js
 
 # We need to make certain that Ghost will start automatically after a reboot
@@ -399,12 +400,11 @@ fi
 # Create the public folder which will hold robots.txt, etc.
 mkdir -p "/var/www/${BLOG_FQDN}/public"
 
-# The only thing left is modifying the Nginx configuration file
-# Download example Nginx.conf at https://gist.github.com/hwdsl2/801f73fdd6c032b7539c
+# Download example Nginx configuration file
 cd /opt/nginx/conf || { echo "Failed to change working directory to /opt/nginx/conf. Aborting."; exit 1; }
 /bin/cp -f nginx.conf nginx.conf.old
-example_nginx_conf=https://gist.githubusercontent.com/hwdsl2/801f73fdd6c032b7539c/raw/nginx.conf
-wget -t 3 -T 30 -nv -O nginx.conf $example_nginx_conf
+example_conf=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-modsecurity.conf
+wget -t 3 -T 30 -nv -O nginx.conf $example_conf
 [ ! -f nginx.conf ] && { echo "Could not retrieve example nginx.conf. Aborting."; exit 1; }
 
 # Replace every placeholder domain with your actual domain name:
@@ -433,15 +433,21 @@ PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
 echo
 echo "------------------------------------------------------------------------------------------"
 echo
-echo 'Congratulations! Your new Ghost blog install is complete!'
+echo 'Congratulations! Your new Ghost blog is now ready to use!'
 echo
-echo "Next, you must set up DNS (A Record) to point ${BLOG_FQDN} to this server's IP $PUBLIC_IP."
+echo "Ghost blog has been installed in: /var/www/${BLOG_FQDN}"
+echo "ModSecurity and Nginx config files: /opt/nginx/conf"
+echo "Nginx web server logs: /opt/nginx/logs"
+echo
+echo "[Next Steps]"
+echo
+echo "You must set up DNS (A Record) to point ${BLOG_FQDN} to this server's public IP ${PUBLIC_IP}"
 echo
 echo "When using your blog for the first time, browse to http://${BLOG_FQDN}/ghost/"
 echo "Or alternatively, set up SSH port forwarding and browse to http://localhost:2368/ghost/"
 echo "to create the Admin user of your Ghost blog. Choose a very secure password."
 echo
-echo "After your blog is set up, follow additional instructions in my tutorial (link below) to:"
+echo "After your blog is set up, follow additional instructions at link below to:"
 echo "https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/#tag1"
 echo
 echo "1. Set Up HTTPS for Your Blog (Optional)"
@@ -449,4 +455,3 @@ echo "2. Sitemap, Robots.txt and Extras (Optional)"
 echo "3. Setting Up E-Mail on Ghost (Optional)"
 echo
 echo "Questions? Refer to the official Ghost Guide: http://support.ghost.org/"
-echo "Or feel free to leave a comment on my blog at link above."

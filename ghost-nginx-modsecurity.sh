@@ -1,10 +1,12 @@
 #!/bin/bash
 #
-# Use this automated bash script to install the latest Ghost blog on Ubuntu,
+# Use this automated bash script to install the latest Ghost blog on Ubuntu or Debian,
 # with Nginx (as a reverse proxy) and ModSecurity web application firewall.
 #
 # This script should only be used on a Virtual Private Server (VPS) or dedicated server,
-# with *freshly installed* Ubuntu 16.04/14.04/12.04. *DO NOT* run this on your PC or Mac!
+# with *freshly installed* Ubuntu LTS or Debian 8.
+#
+# *DO NOT* run this script on your PC or Mac!
 #
 # Copyright (C) 2015-2016 Lin Song
 # Based on the work of Herman Stevens (Copyright 2013)
@@ -20,15 +22,29 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see http://www.gnu.org/licenses/.
 
-if [ "$(lsb_release -si 2>/dev/null)" != "Ubuntu" ]; then
-  echo "Looks like you aren't running this script on a Ubuntu system."
+if [ "$(lsb_release -si 2>/dev/null)" != "Ubuntu" ] && [ "$(lsb_release -si 2>/dev/null)" != "Debian" ]; then
+  echo "Looks like you aren't running this script on a Ubuntu or Debian system."
   exit 1
 fi
 
+if [ "$(lsb_release -si 2>/dev/null)" = "Ubuntu" ]; then
+
 os_ver="$(lsb_release -sr)"
 if [ "$os_ver" != "16.04" ] && [ "$os_ver" != "14.04" ] && [ "$os_ver" != "12.04" ]; then
-  echo "This script only supports Ubuntu versions 16.04, 14.04 or 12.04."
+  echo "This script only supports Ubuntu versions 16.04, 14.04 and 12.04."
   exit 1
+fi
+
+fi
+
+if [ "$(lsb_release -si 2>/dev/null)" = "Debian" ]; then
+
+os_ver="$(sed 's/\..*//' /etc/debian_version 2>/dev/null)"
+if [ "$os_ver" != "8" ]; then
+  echo "This script only supports Debian versions 8 (Jessie)."
+  exit 1
+fi
+
 fi
 
 if [ "$(id -u)" != 0 ]; then
@@ -49,15 +65,15 @@ clear
 echo 'Welcome! This script installs Ghost blog (https://ghost.org) on your server,'
 echo 'with Nginx (as a reverse proxy) and Modsecurity web application firewall.'
 echo
-echo 'The full domain name you specified for your new blog is:'
+echo 'The fully qualified domain name (FQDN) for your new blog is:'
 echo
 echo "$1"
 echo
 echo 'Please double check. This MUST be correct for your blog to work!'
 echo
-echo 'IMPORTANT NOTE:'
+echo 'IMPORTANT NOTES:'
 echo 'This script should only be used on a Virtual Private Server (VPS) or dedicated server,'
-echo 'with *freshly installed* Ubuntu 16.04/14.04/12.04 LTS.'
+echo 'with *freshly installed* Ubuntu LTS or Debian 8.'
 echo '*DO NOT* run this script on your PC or Mac!'
 echo
 
@@ -85,7 +101,7 @@ cd /opt/src || { echo "Failed to change working directory to /opt/src. Aborting.
 # Before doing anything else, we update the OS and software:
 export DEBIAN_FRONTEND=noninteractive
 apt-get -y update
-apt-get -y upgrade
+apt-get -y dist-upgrade
 
 # We need some more software:
 apt-get -y install unzip fail2ban iptables-persistent \
@@ -94,8 +110,8 @@ apt-get -y install unzip fail2ban iptables-persistent \
   libtool autoconf
 
 : '
-(Optional) Commands between dividers below are optional, but they could improve the security 
-  of your server and reduce the number of brute-force login attempts in your SSH logs.
+# (Optional) Commands between dividers below are optional, but they could improve the security
+# of your server and reduce the number of brute-force login attempts in your SSH logs.
 
 # Start of optional commands
 # -------------------------------------------------------------------------------------------
@@ -103,7 +119,8 @@ apt-get -y install unzip fail2ban iptables-persistent \
 # Configure a non-standard port for SSH (e.g. 6543)
 /bin/cp -f /etc/ssh/sshd_config /etc/ssh/sshd_config.old
 sed "s/Port 22/Port 6543/" </etc/ssh/sshd_config >/etc/ssh/sshd_config.new
-/bin/mv -f /etc/ssh/sshd_config.new /etc/ssh/sshd_config
+/bin/cp -f /etc/ssh/sshd_config.new /etc/ssh/sshd_config
+/bin/rm -f /etc/ssh/sshd_config.new
 service ssh restart
 
 # Let Fail2Ban monitor the non-standard SSH port
@@ -135,9 +152,9 @@ maxretry = 5
 
 # Modify the iptables configuration
 # Make those rules persistent using the package "iptables-persistent".
-/bin/cp -f /etc/iptables/rules.v4 "/etc/iptables/rules.v4.old-$(date +%Y-%m-%d-%H:%M:%S)" 2>/dev/null
-service iptables-persistent start
-service netfilter-persistent start
+/bin/cp -f /etc/iptables/rules.v4 /etc/iptables/rules.v4.old
+service iptables-persistent start 2>/dev/null
+service netfilter-persistent start 2>/dev/null
 iptables -P INPUT ACCEPT
 iptables -P FORWARD ACCEPT
 iptables -P OUTPUT ACCEPT
@@ -155,67 +172,42 @@ iptables -A INPUT -p udp --dport 67:68 --sport 67:68 -j ACCEPT
 # Delete the next line if you configured a non-standard SSH port:
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 # IMPORTANT: If you configured a non-standard SSH port (e.g. 6543),
-# you must uncomment the next line and replace 6543 with your new port.
+# uncomment the next line and replace 6543 with your new port.
 # iptables -A INPUT -p tcp --dport 6543 -j ACCEPT
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 iptables -A INPUT -j DROP
 iptables -A FORWARD -j DROP
 service fail2ban stop
-/etc/init.d/iptables-persistent save
-netfilter-persistent save
+/etc/init.d/iptables-persistent save 2>/dev/null
+netfilter-persistent save 2>/dev/null
 service fail2ban start
 
-: '
-(Optional) If your server has IPv6 enabled, you may also want to configure IP6Tables
- by editing the file "/etc/iptables/rules.v6". Search for related tutorials on the web.
+# (Optional) If your server has IPv6 enabled, you may also want to configure IP6Tables
+# by editing the file "/etc/iptables/rules.v6". Search for related tutorials on the web.
 
-Next, we need to install Node.js. See separate steps for Ubuntu 16.04/14.04 and 12.04 below.
- (Check Ubuntu version: lsb_release -sr)
+# Next, we need to install Node.js.
+# See separate steps for Ubuntu 16.04, 14.04/12.04 and Debian 8 below.
 
--------------------------------------------------------
-* Steps for Ubuntu 16.04 (Xenial) and 14.04 (Trusty) *
--------------------------------------------------------
-'
+# -----------------------------------
+# * Steps for Ubuntu 16.04 (Xenial) *
+# -----------------------------------
 
-if [ "$os_ver" = "16.04" ] || [ "$os_ver" = "14.04" ]; then
+if [ "$os_ver" = "16.04" ]; then
   apt-get -y install nodejs nodejs-legacy npm
 fi
 
-: '
------------------------------------------
- Steps for Ubuntu 12.04 (Precise) ONLY *
------------------------------------------
-(Choose ONE from the two methods below)
+# --------------------------------------------------
+# * Steps for Ubuntu 14.04 and 12.04, and Debian 8 *
+# --------------------------------------------------
+# Ref: https://github.com/nodesource/distributions#debinstall
 
-Note: Ghost blog supports Node.js versions 0.10.x, 0.12.x and 4.2.x only.
-
-[Method 1] Installing Node.js via package manager.
-  Source: https://nodesource.com/blog/nodejs-v012-iojs-and-the-nodesource-linux-repositories#installingnodejsv012
-'
-
-if [ "$os_ver" = "12.04" ]; then
-  curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
+if [ "$os_ver" = "14.04" ] || [ "$os_ver" = "12.04" ] || [ "$os_ver" = "8" ]; then
+  curl -sL https://deb.nodesource.com/setup_0.12 | bash -
   apt-get -y install nodejs
 fi
 
-: '
-[Method 2] Compile node.js from source.
-  Note: If you use this method to install node.js, later when a newer version is available,
-  you may want to repeat these download, compile & install steps to upgrade it.
-  This also applies to other software (e.g. Modsecurity, Nginx) that are compiled from source.
-
-cd /opt/src
-wget -qO- https://nodejs.org/download/release/v0.12.13/node-v0.12.13.tar.gz | tar xvz
-cd node-v0.12.13
-./configure --prefix=/usr
-make && make install
-# The "make" command may take some time...
-
-# -------------------------------------------------------------------------------------------
-'
-
-# Instructions below are for all 3 Ubuntu versions.
+# Instructions below are for all supported OS and versions.
 
 # To keep your Ghost blog running, install "forever".
 npm install forever -g
@@ -243,7 +235,7 @@ unzip -o ghost-latest.zip && /bin/rm -f ghost-latest.zip
 npm install --production
 
 # Generate config file and make sure that Ghost uses your actual domain name
-/bin/cp -f config.js "config.js.old-$(date +%Y-%m-%d-%H:%M:%S)" 2>/dev/null
+/bin/cp -f config.js config.js.old
 sed "s/my-ghost-blog.com/${BLOG_FQDN}/" <config.example.js >config.js
 
 # We need to make certain that Ghost will start automatically after a reboot
@@ -269,7 +261,7 @@ chmod +x starter.sh
 crontab -r
 crontab -l 2>/dev/null | { cat; echo "@reboot /var/www/${BLOG_FQDN}/starter.sh"; } | crontab -
 
-# SKIP this command if running script manually
+# SKIP this line if running script manually
 SU_END
 
 : '
@@ -410,7 +402,7 @@ mkdir -p "/var/www/${BLOG_FQDN}/public"
 # The only thing left is modifying the Nginx configuration file
 # Download example Nginx.conf at https://gist.github.com/hwdsl2/801f73fdd6c032b7539c
 cd /opt/nginx/conf || { echo "Failed to change working directory to /opt/nginx/conf. Aborting."; exit 1; }
-/bin/mv -f nginx.conf "nginx.conf.old-$(date +%Y-%m-%d-%H:%M:%S)"
+/bin/cp -f nginx.conf nginx.conf.old
 example_nginx_conf=https://gist.githubusercontent.com/hwdsl2/801f73fdd6c032b7539c/raw/nginx.conf
 wget -t 3 -T 30 -nv -O nginx.conf $example_nginx_conf
 [ ! -f nginx.conf ] && { echo "Could not retrieve example nginx.conf. Aborting."; exit 1; }
@@ -435,11 +427,16 @@ service nginx restart
 # Remove temporary file
 /bin/rm -f /tmp/BLOG_FQDN
 
+# Retrieve server public IP for display below
+PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
+
 echo
 echo "------------------------------------------------------------------------------------------"
-echo 'Congratulations! Your new Ghost blog setup is complete!'
 echo
-echo "Next, you must set up DNS (A Record) to point ${BLOG_FQDN} to your server's public IP."
+echo 'Congratulations! Your new Ghost blog install is complete!'
+echo
+echo "Next, you must set up DNS (A Record) to point ${BLOG_FQDN} to this server's IP $PUBLIC_IP."
+echo
 echo "When using your blog for the first time, browse to http://${BLOG_FQDN}/ghost/"
 echo "Or alternatively, set up SSH port forwarding and browse to http://localhost:2368/ghost/"
 echo "to create the Admin user of your Ghost blog. Choose a very secure password."

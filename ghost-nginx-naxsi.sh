@@ -52,6 +52,12 @@ if [ "$(id -u)" != 0 ]; then
   exit 1
 fi
 
+if id -u ghost >/dev/null 2>&1; then
+  echo "User 'ghost' already exists! Setup cannot continue."
+  echo "Re-run this script on a freshly installed system."
+  exit 1
+fi
+
 if [ "$1" = "" ] || [ "$1" = "BLOG_FULL_DOMAIN_NAME" ]; then
   script_name=$(basename "$0")
   echo "Usage: bash $script_name BLOG_FULL_DOMAIN_NAME"
@@ -269,6 +275,9 @@ SU_END
 exit
 '
 
+# Check if Ghost blog download was successful
+[ ! -f "/var/www/${BLOG_FQDN}/index.js" ] && exit 1
+
 # Commands below will be run as "root".
 
 # Create the logfile:
@@ -381,8 +390,8 @@ PrivateTmp=true
 WantedBy=multi-user.target
 EOF
 
-systemctl daemon-reload
-systemctl enable nginx.service
+systemctl daemon-reload 2>/dev/null
+systemctl enable nginx.service 2>/dev/null
 
 fi
 

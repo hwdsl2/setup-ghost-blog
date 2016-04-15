@@ -1,4 +1,4 @@
-## Ghost Blog Auto Setup with Nginx and ModSecurity/Naxsi
+## Ghost Blog Auto Setup with Nginx and ModSecurity/Naxsi <a href="https://travis-ci.org/hwdsl2/setup-ghost-blog"><img align="right" src="https://travis-ci.org/hwdsl2/setup-ghost-blog.svg?branch=master" alt="Build status" /></a>
 
 Scripts to install your own <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost blog</a>, with <a href="http://nginx.org/en/" target="_blank">Nginx</a> (as a reverse proxy) and <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> or <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a> web application firewall.
 
@@ -12,7 +12,7 @@ A dedicated server or Virtual Private Server (VPS), with **freshly installed** L
 - Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise)
 - Debian 8 (Jessie)
 
-:warning: **DO NOT** run these scripts on your PC or Mac!
+:warning: **DO NOT** run these scripts on your PC or Mac! They should only be used on a server!
 
 ### How To Use
 

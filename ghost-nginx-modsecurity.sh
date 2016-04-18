@@ -52,6 +52,10 @@ if [ "$(id -u)" != 0 ]; then
   exit 1
 fi
 
+phymem="$(free | awk '/^Mem:/{print $2}')"
+[ -z "$phymem" ] && phymem=500000
+[ "$phymem" -lt 500000 ] && { echo "A minimum of 512MB RAM is required for Ghost blog install. Aborting."; exit 1; }
+
 if id -u ghost >/dev/null 2>&1; then
   echo "User 'ghost' already exists! Setup cannot continue."
   echo "Re-run this script on a freshly installed system."

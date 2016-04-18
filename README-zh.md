@@ -10,8 +10,8 @@ Ghost 博客是一个简约和现代的<a href="https://ghost.org/vs/wordpress/"
 
 ## 系统要求
 
-一个专用服务器或虚拟专用服务器 （VPS），\*全新安装\* 以下 Linux 系统：
-
+一个专用服务器或虚拟专用服务器 （VPS），\*全新安装\* 以下 Linux 系统：   
+&nbsp;(注: Ghost 博客安装需要至少 512 MB 内存)   
 - Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise)
 - Debian 8 (Jessie)
 

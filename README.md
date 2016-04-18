@@ -11,6 +11,7 @@ Ghost is a simple, modern <a href="https://ghost.org/vs/wordpress/" target="_bla
 ## Requirements
 
 A dedicated server or Virtual Private Server (VPS), with **freshly installed** Linux OS:   
+&nbsp;(Note: At least 512MB RAM is required for Ghost blog install)   
 - Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise)
 - Debian 8 (Jessie)
 

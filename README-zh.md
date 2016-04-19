@@ -19,7 +19,7 @@ Ghost 博客是一个简约和现代的<a href="https://ghost.org/vs/wordpress/"
 
 ## 如何安装
 
-注： 请务必将下面的 `BLOG_FULL_DOMAIN_NAME` 替换为你的博客的完整域名。
+注： 请把下面的 `BLOG_FULL_DOMAIN_NAME` 替换为你的博客的完整域名。
 
 ### 选择 ModSecurity 防火墙：
 

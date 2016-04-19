@@ -19,7 +19,7 @@ A dedicated server or Virtual Private Server (VPS), with **freshly installed** L
 
 ## How To Use
 
-Note: You must replace `BLOG_FULL_DOMAIN_NAME` below with the full domain name of your blog.
+Note: You must replace `BLOG_FULL_DOMAIN_NAME` below with your actual domain name.
 
 ### Install with ModSecurity WAF:
 

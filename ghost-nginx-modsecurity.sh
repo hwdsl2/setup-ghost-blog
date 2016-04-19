@@ -3,7 +3,7 @@
 # Use this automated bash script to install the latest Ghost blog on Ubuntu or Debian,
 # with Nginx (as a reverse proxy) and ModSecurity web application firewall.
 #
-# This script should only be used on a Virtual Private Server (VPS) or dedicated server,
+# It should only be used on a Virtual Private Server (VPS) or dedicated server,
 # with *freshly installed* Ubuntu LTS or Debian 8.
 #
 # *DO NOT* run this script on your PC or Mac!
@@ -22,29 +22,26 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see http://www.gnu.org/licenses/.
 
-if [ "$(lsb_release -si 2>/dev/null)" != "Ubuntu" ] && [ "$(lsb_release -si 2>/dev/null)" != "Debian" ]; then
+os_type="$(lsb_release -si 2>/dev/null)"
+if [ "$os_type" != "Ubuntu" ] && [ "$os_type" != "Debian" ]; then
   echo "Looks like you aren't running this script on a Ubuntu or Debian system."
   exit 1
 fi
 
-if [ "$(lsb_release -si 2>/dev/null)" = "Ubuntu" ]; then
-
+if [ "$os_type" = "Ubuntu" ]; then
 os_ver="$(lsb_release -sr)"
 if [ "$os_ver" != "16.04" ] && [ "$os_ver" != "14.04" ] && [ "$os_ver" != "12.04" ]; then
   echo "This script only supports Ubuntu versions 16.04, 14.04 and 12.04."
   exit 1
 fi
-
 fi
 
-if [ "$(lsb_release -si 2>/dev/null)" = "Debian" ]; then
-
+if [ "$os_type" = "Debian" ]; then
 os_ver="$(sed 's/\..*//' /etc/debian_version 2>/dev/null)"
 if [ "$os_ver" != "8" ]; then
   echo "This script only supports Debian versions 8 (Jessie)."
   exit 1
 fi
-
 fi
 
 if [ "$(id -u)" != 0 ]; then
@@ -54,20 +51,22 @@ fi
 
 phymem="$(free | awk '/^Mem:/{print $2}')"
 [ -z "$phymem" ] && phymem=500000
-[ "$phymem" -lt 500000 ] && { echo "A minimum of 512MB RAM is required for Ghost blog install. Aborting."; exit 1; }
+if [ "$phymem" -lt 500000 ]; then
+  echo "This server does not have enough RAM. Setup cannot continue."
+  echo "A minimum of 512MB RAM is required for Ghost blog install."
+  exit 1
+fi
 
 if id -u ghost >/dev/null 2>&1; then
   echo "User 'ghost' already exists! Setup cannot continue."
-  echo "Re-run this script on a freshly installed system."
+  echo "Please use this script on a freshly installed system."
   exit 1
 fi
 
 if [ "$1" = "" ] || [ "$1" = "BLOG_FULL_DOMAIN_NAME" ]; then
   script_name=$(basename "$0")
   echo "Usage: bash $script_name BLOG_FULL_DOMAIN_NAME"
-  echo
-  echo 'Note: You must replace BLOG_FULL_DOMAIN_NAME above with'
-  echo 'the actual full domain name of your new Ghost blog!'
+  echo '(Replace the above with your actual domain name)'
   exit 1
 fi
 
@@ -83,7 +82,7 @@ echo 'Please double check. This MUST be correct for your blog to work!'
 echo
 echo 'IMPORTANT NOTES:'
 echo 'This script should only be used on a Virtual Private Server (VPS) or dedicated server,'
-echo 'with *freshly installed* Ubuntu LTS or Debian 8.'
+echo 'with *freshly installed* Ubuntu LTS or Debian 8. At least 512MB RAM is required.'
 echo '*DO NOT* run this script on your PC or Mac!'
 echo
 
@@ -106,7 +105,7 @@ echo "$BLOG_FQDN" > /tmp/BLOG_FQDN
 
 # Create and change to working dir
 mkdir -p /opt/src
-cd /opt/src || { echo "Failed to change working directory to /opt/src. Aborting."; exit 1; }
+cd /opt/src || { echo "Failed to change directory to /opt/src. Aborting."; exit 1; }
 
 # Before doing anything else, we update the OS and software:
 export DEBIAN_FRONTEND=noninteractive
@@ -293,7 +292,7 @@ chown ghost.ghost /var/log/nodelog.txt
 # We use ModSecurity's sources from "nginx_refactoring" branch for improved stability.
 # Ref: https://mescanef.net/blog/2015/11/nginx-with-modsecurity/
 
-cd /opt/src || { echo "Failed to change working directory to /opt/src. Aborting."; exit 1; }
+cd /opt/src || { echo "Failed to change directory to /opt/src. Aborting."; exit 1; }
 wget -t 3 -T 30 -nv -O nginx_refactoring.zip https://github.com/SpiderLabs/ModSecurity/archive/nginx_refactoring.zip
 [ ! -f nginx_refactoring.zip ] && { echo "Could not retrieve ModSecurity source files. Aborting."; exit 1; }
 unzip -o nginx_refactoring.zip && /bin/rm -f nginx_refactoring.zip
@@ -307,7 +306,7 @@ make
 adduser --system --no-create-home --disabled-login --disabled-password --group nginx
 
 # Download and compile the latest version of Nginx:
-cd /opt/src || { echo "Failed to change working directory to /opt/src. Aborting."; exit 1; }
+cd /opt/src || { echo "Failed to change directory to /opt/src. Aborting."; exit 1; }
 wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.8.1.tar.gz | tar xvz
 [ ! -d nginx-1.8.1 ] && { echo "Could not retrieve Nginx source files. Aborting."; exit 1; }
 cd nginx-1.8.1 || { echo "Failed to change directory to /opt/src/nginx-1.8.1. Aborting."; exit 1; }
@@ -318,7 +317,7 @@ make && make install
 # The "make" command may take some time...
 
 # Copy the ModSecurity configuration file to the Nginx directory:
-cd /opt/nginx/conf || { echo "Failed to change working directory to /opt/nginx/conf. Aborting."; exit 1; }
+cd /opt/nginx/conf || { echo "Failed to change directory to /opt/nginx/conf. Aborting."; exit 1; }
 /bin/cp -f /opt/src/ModSecurity-nginx_refactoring/modsecurity.conf-recommended modsecurity.conf
 /bin/cp -f /opt/src/ModSecurity-nginx_refactoring/unicode.mapping ./
 
@@ -414,7 +413,7 @@ fi
 mkdir -p "/var/www/${BLOG_FQDN}/public"
 
 # Download example Nginx configuration file
-cd /opt/nginx/conf || { echo "Failed to change working directory to /opt/nginx/conf. Aborting."; exit 1; }
+cd /opt/nginx/conf || { echo "Failed to change directory to /opt/nginx/conf. Aborting."; exit 1; }
 /bin/cp -f nginx.conf nginx.conf.old
 example_conf=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-modsecurity.conf
 wget -t 3 -T 30 -nv -O nginx.conf $example_conf
@@ -446,21 +445,20 @@ PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
 echo
 echo "------------------------------------------------------------------------------------------"
 echo
-echo 'Congratulations! Your new Ghost blog is now ready to use!'
+echo 'Setup is complete. Your new Ghost blog is now ready for use!'
 echo
-echo "Ghost blog has been installed in: /var/www/${BLOG_FQDN}"
+echo "Ghost blog is installed in: /var/www/${BLOG_FQDN}"
 echo "ModSecurity and Nginx config files: /opt/nginx/conf"
 echo "Nginx web server logs: /opt/nginx/logs"
 echo
 echo "[Next Steps]"
 echo
-echo "You must set up DNS (A Record) to point ${BLOG_FQDN} to this server's public IP ${PUBLIC_IP}"
+echo "You must set up DNS (A Record) to point ${BLOG_FQDN} to the IP of this server ${PUBLIC_IP}"
 echo
-echo "When using your blog for the first time, browse to http://${BLOG_FQDN}/ghost/"
-echo "Or alternatively, set up SSH port forwarding and browse to http://localhost:2368/ghost/"
-echo "to create the Admin user of your Ghost blog. Choose a very secure password."
+echo "Browse to http://${BLOG_FQDN}/ghost (or http://localhost:2368/ghost via SSH port forwarding)"
+echo "to configure your blog and create an admin user. Choose a very secure password."
 echo
-echo "After your blog is set up, follow additional instructions at link below to:"
+echo "Finally, follow additional instructions at the link below to:"
 echo "https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/#tag1"
 echo
 echo "1. Set Up HTTPS for Your Blog (Optional)"
@@ -468,3 +466,8 @@ echo "2. Sitemap, Robots.txt and Extras (Optional)"
 echo "3. Setting Up E-Mail on Ghost (Optional)"
 echo
 echo "Questions? Refer to the official Ghost Guide: http://support.ghost.org/"
+echo
+echo "------------------------------------------------------------------------------------------"
+echo
+
+exit 0

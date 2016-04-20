@@ -24,14 +24,14 @@
 
 os_type="$(lsb_release -si 2>/dev/null)"
 if [ "$os_type" != "Ubuntu" ] && [ "$os_type" != "Debian" ]; then
-  echo "Looks like you aren't running this script on a Ubuntu or Debian system."
+  echo "This script only supports Ubuntu or Debian systems."
   exit 1
 fi
 
 if [ "$os_type" = "Ubuntu" ]; then
 os_ver="$(lsb_release -sr)"
 if [ "$os_ver" != "16.04" ] && [ "$os_ver" != "14.04" ] && [ "$os_ver" != "12.04" ]; then
-  echo "This script only supports Ubuntu versions 16.04, 14.04 and 12.04."
+  echo "This script only supports Ubuntu 16.04, 14.04 and 12.04."
   exit 1
 fi
 fi
@@ -39,13 +39,13 @@ fi
 if [ "$os_type" = "Debian" ]; then
 os_ver="$(sed 's/\..*//' /etc/debian_version 2>/dev/null)"
 if [ "$os_ver" != "8" ]; then
-  echo "This script only supports Debian versions 8 (Jessie)."
+  echo "This script only supports Debian 8 (Jessie)."
   exit 1
 fi
 fi
 
 if [ "$(id -u)" != 0 ]; then
-  echo "Sorry, you need to run this script as root."
+  echo "Script must be run as root. Try 'sudo bash $0'"
   exit 1
 fi
 
@@ -65,7 +65,7 @@ fi
 
 if [ "$1" = "" ] || [ "$1" = "BLOG_FULL_DOMAIN_NAME" ]; then
   script_name=$(basename "$0")
-  echo "Usage: bash $script_name BLOG_FULL_DOMAIN_NAME"
+  echo "Usage: sudo bash $script_name BLOG_FULL_DOMAIN_NAME"
   echo '(Replace the above with your actual domain name)'
   exit 1
 fi

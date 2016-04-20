@@ -25,14 +25,14 @@ Ghost 博客是一个简约和现代的<a href="https://ghost.org/vs/wordpress/"
 
 ```
 wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-modsecurity.sh -O ghost-nginx-modsecurity.sh
-bash ghost-nginx-modsecurity.sh BLOG_FULL_DOMAIN_NAME
+sudo bash ghost-nginx-modsecurity.sh BLOG_FULL_DOMAIN_NAME
 ```
 
 ### 选择 Naxsi 防火墙：
 
 ```
 wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-naxsi.sh -O ghost-nginx-naxsi.sh
-bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
+sudo bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 ```
 
 ## 版权与许可

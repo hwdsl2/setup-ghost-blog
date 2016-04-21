@@ -240,7 +240,7 @@ export BLOG_FQDN
 
 # Get the ghost blog source (latest version), unzip and install.
 wget -t 3 -T 30 -nv -O ghost-latest.zip https://ghost.org/zip/ghost-latest.zip
-[ ! -f ghost-latest.zip ] && { echo "Could not retrieve Ghost blog source file. Aborting."; exit 1; }
+[ "$?" != "0" ] && { echo "Could not retrieve Ghost blog source file. Aborting."; exit 1; }
 unzip -o ghost-latest.zip && /bin/rm -f ghost-latest.zip
 npm install --production
 
@@ -294,7 +294,7 @@ chown ghost.ghost /var/log/nodelog.txt
 
 cd /opt/src || { echo "Failed to change directory to /opt/src. Aborting."; exit 1; }
 wget -t 3 -T 30 -nv -O nginx_refactoring.zip https://github.com/SpiderLabs/ModSecurity/archive/nginx_refactoring.zip
-[ ! -f nginx_refactoring.zip ] && { echo "Could not retrieve ModSecurity source files. Aborting."; exit 1; }
+[ "$?" != "0" ] && { echo "Could not retrieve ModSecurity source files. Aborting."; exit 1; }
 unzip -o nginx_refactoring.zip && /bin/rm -f nginx_refactoring.zip
 cd ModSecurity-nginx_refactoring || { echo "Failed to change directory to /opt/src/ModSecurity-nginx_refactoring. Aborting."; exit 1; }
 ./autogen.sh
@@ -323,9 +323,9 @@ cd /opt/nginx/conf || { echo "Failed to change directory to /opt/nginx/conf. Abo
 
 # We need some more rules for ModSecurity:
 wget -t 3 -T 30 -nv -O modsecurity_crs_41_xss_attacks.conf https://raw.githubusercontent.com/SpiderLabs/owasp-modsecurity-crs/master/base_rules/modsecurity_crs_41_xss_attacks.conf
-[ ! -f modsecurity_crs_41_xss_attacks.conf ] && { echo "Could not retrieve modsecurity_crs_41_xss_attacks.conf. Aborting."; exit 1; }
+[ "$?" != "0" ] && { echo "Could not retrieve modsecurity_crs_41_xss_attacks.conf. Aborting."; exit 1; }
 wget -t 3 -T 30 -nv -O modsecurity_crs_41_sql_injection_attacks.conf https://raw.githubusercontent.com/SpiderLabs/owasp-modsecurity-crs/master/base_rules/modsecurity_crs_41_sql_injection_attacks.conf
-[ ! -f modsecurity_crs_41_sql_injection_attacks.conf ] && { echo "Could not retrieve modsecurity_crs_41_sql_injection_attacks.conf. Aborting."; exit 1; }
+[ "$?" != "0" ] && { echo "Could not retrieve modsecurity_crs_41_sql_injection_attacks.conf. Aborting."; exit 1; }
 
 # Disable the JSON parser due to issues (400 Bad Request) when updating a blog post.
 # Ref: https://github.com/SpiderLabs/ModSecurity/issues/939
@@ -417,7 +417,7 @@ cd /opt/nginx/conf || { echo "Failed to change directory to /opt/nginx/conf. Abo
 /bin/cp -f nginx.conf nginx.conf.old
 example_conf=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-modsecurity.conf
 wget -t 3 -T 30 -nv -O nginx.conf $example_conf
-[ ! -f nginx.conf ] && { echo "Could not retrieve example nginx.conf. Aborting."; exit 1; }
+[ "$?" != "0" ] && { echo "Could not retrieve example nginx.conf. Aborting."; exit 1; }
 
 # Replace every placeholder domain with your actual domain name:
 sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" nginx.conf

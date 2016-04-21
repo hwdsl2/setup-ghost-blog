@@ -239,7 +239,7 @@ export BLOG_FQDN
 
 # Get the ghost blog source (latest version), unzip and install.
 wget -t 3 -T 30 -nv -O ghost-latest.zip https://ghost.org/zip/ghost-latest.zip
-[ ! -f ghost-latest.zip ] && { echo "Could not retrieve Ghost blog source file. Aborting."; exit 1; }
+[ "$?" != "0" ] && { echo "Could not retrieve Ghost blog source file. Aborting."; exit 1; }
 unzip -o ghost-latest.zip && /bin/rm -f ghost-latest.zip
 npm install --production
 
@@ -406,7 +406,7 @@ cd /opt/nginx/conf || { echo "Failed to change directory to /opt/nginx/conf. Abo
 /bin/cp -f nginx.conf nginx.conf.old
 example_conf=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-naxsi.conf
 wget -t 3 -T 30 -nv -O nginx.conf $example_conf
-[ ! -f nginx.conf ] && { echo "Could not retrieve example nginx.conf. Aborting."; exit 1; }
+[ "$?" != "0" ] && { echo "Could not retrieve example nginx.conf. Aborting."; exit 1; }
 
 # Replace every placeholder domain with your actual domain name:
 sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" nginx.conf

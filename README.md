@@ -25,14 +25,14 @@ Note: You must replace `BLOG_FULL_DOMAIN_NAME` below with your actual domain nam
 
 ```
 wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-modsecurity.sh -O ghost-nginx-modsecurity.sh
-sudo bash ghost-nginx-modsecurity.sh BLOG_FULL_DOMAIN_NAME
+bash ghost-nginx-modsecurity.sh BLOG_FULL_DOMAIN_NAME
 ```
 
 ### Install with Naxsi WAF:
 
 ```
 wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-naxsi.sh -O ghost-nginx-naxsi.sh
-sudo bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
+bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 ```
 
 ## Copyright and License

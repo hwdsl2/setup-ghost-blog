@@ -161,10 +161,18 @@ useradd -d "/var/www/${BLOG_FQDN}" -m -s /bin/false ghost
 # Stop running Ghost blog processes, if any.
 su - ghost -s /bin/bash -c "forever stopall"
 
-# Create temporary swap file to avoid out of memory errors during install
-swap_tmp="/tmp/swapfile.tmp"
-dd if=/dev/zero of="$swap_tmp" bs=1M count=512 || /bin/rm -f "$swap_tmp"
-chmod 600 "$swap_tmp" && mkswap "$swap_tmp" && swapon "$swap_tmp"
+# Create temporary swap file to prevent out of memory errors during install
+# Do not create if OpenVZ VPS or if RAM size >= 750 MB
+swap_tmp="/tmp/swapfile_temp.tmp"
+if [ ! -f /proc/user_beancounters ]; then
+  if [ "$phymem" -lt 750000 ]; then
+    echo
+    echo "Creating temporary swap file, please wait ..."
+    echo
+    dd if=/dev/zero of="$swap_tmp" bs=1M count=512 >/dev/null || /bin/rm -f "$swap_tmp"
+    chmod 600 "$swap_tmp" && mkswap "$swap_tmp" >/dev/null && swapon "$swap_tmp"
+  fi
+fi
 
 # Switch to user "ghost".
 # REMOVE <<'SU_END' if running script manually.
@@ -218,8 +226,7 @@ exit
 '
 
 # Remove temporary swap file
-swapoff "$swap_tmp"
-/bin/rm -f "$swap_tmp"
+[ -f "$swap_tmp" ] && swapoff "$swap_tmp" && /bin/rm -f "$swap_tmp"
 
 # Check if Ghost blog download was successful
 [ ! -f "/var/www/${BLOG_FQDN}/index.js" ] && exit 1

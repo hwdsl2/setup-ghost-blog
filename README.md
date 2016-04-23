@@ -19,7 +19,7 @@ A dedicated server or Virtual Private Server (VPS), with **freshly installed** L
 
 ## How To Use
 
-Note: You must replace `BLOG_FULL_DOMAIN_NAME` below with your actual domain name.
+First, update your system with `apt-get update && apt-get dist-upgrade` and reboot. This is optional, but recommended.
 
 ### Install with ModSecurity WAF:
 
@@ -34,6 +34,8 @@ bash ghost-nginx-modsecurity.sh BLOG_FULL_DOMAIN_NAME
 wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-naxsi.sh -O ghost-nginx-naxsi.sh
 bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 ```
+
+Note: You must replace `BLOG_FULL_DOMAIN_NAME` above with your actual domain name.
 
 ## Copyright and License
 

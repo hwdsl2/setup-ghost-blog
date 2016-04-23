@@ -19,7 +19,7 @@ Ghost 博客是一个简约和现代的<a href="https://ghost.org/vs/wordpress/"
 
 ## 如何安装
 
-注： 请把下面的 `BLOG_FULL_DOMAIN_NAME` 替换为你的博客的完整域名。
+首先，更新你的系统： 运行 `apt-get update && apt-get dist-upgrade` 并重启。这一步是可选的，但推荐。
 
 ### 选择 ModSecurity 防火墙：
 
@@ -34,6 +34,8 @@ bash ghost-nginx-modsecurity.sh BLOG_FULL_DOMAIN_NAME
 wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-naxsi.sh -O ghost-nginx-naxsi.sh
 bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 ```
+
+注： 请把上面的 `BLOG_FULL_DOMAIN_NAME` 替换为你的博客的完整域名。
 
 ## 版权与许可
 

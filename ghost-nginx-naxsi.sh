@@ -160,6 +160,11 @@ useradd -d "/var/www/${BLOG_FQDN}" -m -s /bin/false ghost
 # Stop running Ghost blog processes, if any.
 su - ghost -s /bin/bash -c "forever stopall"
 
+# Create temporary swap file to avoid out of memory errors during install
+swap_tmp="/tmp/swapfile.tmp"
+dd if=/dev/zero of="$swap_tmp" bs=1M count=512 || /bin/rm -f "$swap_tmp"
+chmod 600 "$swap_tmp" && mkswap "$swap_tmp" && swapon "$swap_tmp"
+
 # Switch to user "ghost".
 # REMOVE <<'SU_END' if running script manually.
 su - ghost -s /bin/bash <<'SU_END'
@@ -210,6 +215,10 @@ SU_END
 # Exit the shell so that you are root again.
 exit
 '
+
+# Remove temporary swap file
+swapoff "$swap_tmp"
+/bin/rm -f "$swap_tmp"
 
 # Check if Ghost blog download was successful
 [ ! -f "/var/www/${BLOG_FQDN}/index.js" ] && exit 1

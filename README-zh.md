@@ -10,7 +10,7 @@ Ghost 博客是一个简约和现代的<a href="https://ghost.org/vs/wordpress/"
 
 ## 系统要求
 
-一个专用服务器或虚拟专用服务器 （VPS），\*全新安装\* 以下 Linux 系统：   
+一个专用服务器或虚拟专用服务器 (VPS)，\*全新安装\* 以下操作系统：   
 &nbsp;(注: Ghost 博客安装需要至少 512 MB 内存)   
 - Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise)
 - Debian 8 (Jessie)
@@ -25,14 +25,14 @@ Ghost 博客是一个简约和现代的<a href="https://ghost.org/vs/wordpress/"
 
 ```
 wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-modsecurity.sh -O ghost-nginx-modsecurity.sh
-bash ghost-nginx-modsecurity.sh BLOG_FULL_DOMAIN_NAME
+sudo bash ghost-nginx-modsecurity.sh BLOG_FULL_DOMAIN_NAME
 ```
 
 ### 选择 Naxsi 防火墙：
 
 ```
 wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-naxsi.sh -O ghost-nginx-naxsi.sh
-bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
+sudo bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 ```
 
 注： 请把上面的 `BLOG_FULL_DOMAIN_NAME` 替换为你的博客的完整域名。

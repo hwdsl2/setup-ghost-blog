@@ -25,19 +25,19 @@ First, update your system with `apt-get update && apt-get dist-upgrade` and rebo
 
 ```
 wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-modsecurity.sh -O ghost-nginx-modsecurity.sh
-bash ghost-nginx-modsecurity.sh BLOG_FULL_DOMAIN_NAME
+sudo bash ghost-nginx-modsecurity.sh BLOG_FULL_DOMAIN_NAME
 ```
 
 ### Install with Naxsi WAF:
 
 ```
 wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-naxsi.sh -O ghost-nginx-naxsi.sh
-bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
+sudo bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 ```
 
 Note: You must replace `BLOG_FULL_DOMAIN_NAME` above with your actual domain name.
 
-## Copyright and License
+## License
 
 Copyright (C) 2015-2016&nbsp;Lin Song&nbsp;&nbsp;&nbsp;<a href="https://www.linkedin.com/in/linsongui" target="_blank"><img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_viewmy_160x25.png" width="160" height="25" border="0" alt="View my profile on LinkedIn"></a>    
 Based on <a href="https://blog.igbuend.com/dude-looks-like-a-ghost/" target="_blank">the work of Herman Stevens</a> (Copyright 2013)

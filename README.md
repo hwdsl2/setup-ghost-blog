@@ -6,6 +6,8 @@ Scripts to install your own <a href="https://github.com/TryGhost/Ghost" target="
 
 Ghost is a simple, modern <a href="https://ghost.org/vs/wordpress/" target="_blank">WordPress alternative</a> which puts the excitement back into blogging. It's beautifully designed, easy to use, completely open source, and free for everyone.
 
+**NEW:** You can now install **up to 3** Ghost blogs on the same server. Just run the script again with another full domain name.
+
 #### <a href="https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/" target="_blank">Link to my blog article with detailed information</a>   
 
 ## Requirements

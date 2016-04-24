@@ -57,17 +57,43 @@ if [ "$phymem" -lt 500000 ]; then
   exit 1
 fi
 
-if id -u ghost >/dev/null 2>&1; then
-  echo "User 'ghost' already exists! Setup cannot continue."
-  echo "Please use this script on a freshly installed system."
-  exit 1
-fi
-
 if [ "$1" = "" ] || [ "$1" = "BLOG_FULL_DOMAIN_NAME" ]; then
   script_name=$(basename "$0")
   echo "Usage: bash $script_name BLOG_FULL_DOMAIN_NAME"
   echo '(Replace the above with your actual domain name)'
   exit 1
+fi
+
+if id -u ghost3 >/dev/null 2>&1; then
+  echo "This script cannot set up more than 3 Ghost blogs on the same server."
+  echo "Aborting."
+  exit 1
+fi
+
+ghost_user=ghost
+if id -u ghost >/dev/null 2>&1; then
+  echo 'It looks like this server already has Ghost blog installed! '
+  [ -d "/var/www/$1" ] && { echo "Aborting."; exit 1; }
+
+  if id -u ghost2 >/dev/null 2>&1; then
+    ghost_user=ghost3
+    touch /tmp/setting_up_ghost3
+  else
+    ghost_user=ghost2
+    touch /tmp/setting_up_ghost2
+  fi
+
+  echo
+  read -r -p "Do you wish to set up ANOTHER Ghost blog on this server? [y/N] " response
+  case $response in
+      [yY][eE][sS]|[yY])
+          echo
+          ;;
+      *)
+          echo "Aborting."
+          exit 1
+          ;;
+  esac
 fi
 
 clear
@@ -155,10 +181,10 @@ npm install forever -g
 
 # Create a user to run Ghost:
 mkdir -p /var/www
-useradd -d "/var/www/${BLOG_FQDN}" -m -s /bin/false ghost
+useradd -d "/var/www/${BLOG_FQDN}" -m -s /bin/false "$ghost_user"
 
 # Stop running Ghost blog processes, if any.
-su - ghost -s /bin/bash -c "forever stopall"
+su - "$ghost_user" -s /bin/bash -c "forever stopall"
 
 # Create temporary swap file to prevent out of memory errors during install
 # Do not create if OpenVZ VPS or if RAM size >= 750 MB
@@ -168,14 +194,14 @@ if [ ! -f /proc/user_beancounters ]; then
     echo
     echo "Creating temporary swap file, please wait ..."
     echo
-    dd if=/dev/zero of="$swap_tmp" bs=1M count=512 >/dev/null || /bin/rm -f "$swap_tmp"
+    dd if=/dev/zero of="$swap_tmp" bs=1M count=512 2>/dev/null || /bin/rm -f "$swap_tmp"
     chmod 600 "$swap_tmp" && mkswap "$swap_tmp" >/dev/null && swapon "$swap_tmp"
   fi
 fi
 
 # Switch to user "ghost".
 # REMOVE <<'SU_END' if running script manually.
-su - ghost -s /bin/bash <<'SU_END'
+su - "$ghost_user" -s /bin/bash <<'SU_END'
 
 # Commands below will be run as user "ghost".
 
@@ -193,10 +219,16 @@ npm install --production
 /bin/cp -f config.js config.js.old 2>/dev/null
 sed "s/my-ghost-blog.com/${BLOG_FQDN}/" <config.example.js >config.js
 
+if [ -f "/tmp/setting_up_ghost2" ]; then
+  sed -i "s/port: '2368'/port: '2369'/" config.js
+elif [ -f "/tmp/setting_up_ghost3" ]; then
+  sed -i "s/port: '2368'/port: '2370'/" config.js
+fi
+
 # We need to make certain that Ghost will start automatically after a reboot
 cat > starter.sh <<'EOF'
 #!/bin/sh
-pgrep -f "/usr/bin/node" >/dev/null
+pgrep -u ghost -f "/usr/bin/node" >/dev/null
 if [ $? -ne 0 ]; then
   export PATH=/usr/local/bin:$PATH
   export NODE_ENV=production
@@ -208,6 +240,14 @@ EOF
 
 # Replace placeholder with your actual domain name:
 sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/" starter.sh
+
+if [ -f "/tmp/setting_up_ghost2" ]; then
+  sed -i "/^pgrep/s/ghost/ghost2/" starter.sh
+  sed -i "s/nodelog\.txt/nodelog2.txt/" starter.sh
+elif [ -f "/tmp/setting_up_ghost3" ]; then
+  sed -i "/^pgrep/s/ghost/ghost3/" starter.sh
+  sed -i "s/nodelog\.txt/nodelog3.txt/" starter.sh
+fi
 
 # Make the script executable with:
 chmod +x starter.sh
@@ -235,6 +275,14 @@ exit
 # Create the logfile:
 touch /var/log/nodelog.txt
 chown ghost.ghost /var/log/nodelog.txt
+
+if [ "$ghost_user" = "ghost2" ]; then
+  touch /var/log/nodelog2.txt
+  chown ghost2.ghost2 /var/log/nodelog2.txt
+elif [ "$ghost_user" = "ghost3" ]; then
+  touch /var/log/nodelog3.txt
+  chown ghost3.ghost3 /var/log/nodelog3.txt
+fi
 
 # Download and extract Naxsi:
 cd /opt/src || exit 1
@@ -351,15 +399,25 @@ mkdir -p "/var/www/${BLOG_FQDN}/public"
 # Download example Nginx configuration file
 cd /opt/nginx/conf || exit 1
 /bin/cp -f nginx.conf nginx.conf.old
-example_conf=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-naxsi.conf
-wget -t 3 -T 30 -nv -O nginx.conf $example_conf
-[ "$?" != "0" ] && { echo "Cannot download example nginx.conf. Aborting."; exit 1; }
+if [ "$ghost_user" = "ghost" ]; then
+  example_conf=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-naxsi.conf
+  wget -t 3 -T 30 -nv -O nginx.conf $example_conf
+  [ "$?" != "0" ] && { echo "Cannot download example nginx.conf. Aborting."; exit 1; }
 
-# Replace all placeholders with your actual domain name:
-sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" nginx.conf
+  # Disable SSL configuration for now (enable it after you fully set it up)
+  sed -i -e "s/listen 443/# listen 443/" -e "s/ssl_/# ssl_/" nginx.conf
+fi
 
-# Disable SSL configuration in nginx.conf for now (enable it after you fully set it up)
-sed -i -e "s/listen 443/# listen 443/" -e "s/ssl_/# ssl_/" nginx.conf
+# Replace placeholder with your actual domain name:
+if [ "$ghost_user" = "ghost2" ]; then
+  sed -i "/^#/s/#//" nginx.conf
+  sed -i "s/YOUR.DOMAIN2.NAME/${BLOG_FQDN}/g" nginx.conf
+elif [ "$ghost_user" = "ghost3" ]; then
+  sed -i "/^#/s/#//" nginx.conf
+  sed -i "s/YOUR.DOMAIN3.NAME/${BLOG_FQDN}/g" nginx.conf
+else
+  sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" nginx.conf
+fi
 
 # Check the validity of the nginx.conf file:
 echo; /opt/nginx/sbin/nginx -t; echo
@@ -369,11 +427,13 @@ echo; /opt/nginx/sbin/nginx -t; echo
 # nginx: configuration file /opt/nginx/conf/nginx.conf test is successful
 
 # Finally, start Ghost blog and Nginx:
-su - ghost -s /bin/bash -c "./starter.sh"
+su - "$ghost_user" -s /bin/bash -c "./starter.sh"
 service nginx restart
 
 # Remove temporary file
 /bin/rm -f /tmp/BLOG_FQDN
+/bin/rm -f /tmp/setting_up_ghost2
+/bin/rm -f /tmp/setting_up_ghost3
 
 # Retrieve server IP for display below
 PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)

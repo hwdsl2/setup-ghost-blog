@@ -64,6 +64,13 @@ if [ "$1" = "" ] || [ "$1" = "BLOG_FULL_DOMAIN_NAME" ]; then
   exit 1
 fi
 
+FQDN_REGEX='^(([a-zA-Z](-?[a-zA-Z0-9])*)\.)*[a-zA-Z](-?[a-zA-Z0-9])+\.[a-zA-Z]{2,}$'
+if ! printf %s "$1" | grep -Eq "$FQDN_REGEX"; then
+  echo "Invalid parameter. You must enter a fully qualified domain name (FQDN)."
+  echo "Aborting."
+  exit 1
+fi
+
 if id -u ghost3 >/dev/null 2>&1; then
   echo "This script cannot set up more than 3 Ghost blogs on the same server."
   echo "Aborting."

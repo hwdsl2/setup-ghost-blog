@@ -430,13 +430,18 @@ echo; /opt/nginx/sbin/nginx -t; echo
 su - "$ghost_user" -s /bin/bash -c "./starter.sh"
 service nginx restart
 
-# Remove temporary file
+# Retrieve server IP for display below
+PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
+
+# Define port number for display below
+ghost_port=2368
+[ -f "/tmp/setting_up_ghost2" ] && ghost_port=2369
+[ -f "/tmp/setting_up_ghost3" ] && ghost_port=2370
+
+# Remove temporary files
 /bin/rm -f /tmp/BLOG_FQDN
 /bin/rm -f /tmp/setting_up_ghost2
 /bin/rm -f /tmp/setting_up_ghost3
-
-# Retrieve server IP for display below
-PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
 
 echo
 echo "============================================================================================="
@@ -451,7 +456,7 @@ echo "[Next Steps]"
 echo
 echo "You must set up DNS (A Record) to point ${BLOG_FQDN} to this server's IP ${PUBLIC_IP}"
 echo
-echo "Browse to http://${BLOG_FQDN}/ghost (or http://localhost:2368/ghost via SSH port forwarding)"
+echo "Browse to http://${BLOG_FQDN}/ghost (or http://localhost:${ghost_port}/ghost via SSH port forwarding)"
 echo "to configure your blog and create an admin user. Choose a very secure password."
 echo
 echo "Next, follow additional instructions at the link below to:"

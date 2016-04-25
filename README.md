@@ -12,8 +12,8 @@ Ghost is a simple, modern <a href="https://ghost.org/vs/wordpress/" target="_bla
 
 ## Requirements
 
-A dedicated server or Virtual Private Server (VPS), with **freshly installed** Linux OS:   
-&nbsp;(Note: At least 512MB RAM is required for Ghost blog install)   
+A dedicated server or Virtual Private Server (VPS), with **freshly installed**:   
+&nbsp;(Note: A minimum of 512 MB RAM is required)   
 - Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise)
 - Debian 8 (Jessie)
 
@@ -23,14 +23,14 @@ A dedicated server or Virtual Private Server (VPS), with **freshly installed** L
 
 First, update your system with `apt-get update && apt-get dist-upgrade` and reboot. This is optional, but recommended.
 
-### Install with ModSecurity WAF:
+### Install with ModSecurity:
 
 ```
 wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-modsecurity.sh -O ghost-nginx-modsecurity.sh
 sudo bash ghost-nginx-modsecurity.sh BLOG_FULL_DOMAIN_NAME
 ```
 
-### Install with Naxsi WAF:
+### Install with Naxsi:
 
 ```
 wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-naxsi.sh -O ghost-nginx-naxsi.sh

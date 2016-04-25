@@ -22,6 +22,8 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see http://www.gnu.org/licenses/.
 
+max_blogs=10
+
 os_type="$(lsb_release -si 2>/dev/null)"
 if [ "$os_type" != "Ubuntu" ] && [ "$os_type" != "Debian" ]; then
   echo "This script only supports Ubuntu or Debian systems."
@@ -71,24 +73,28 @@ if ! printf %s "$1" | grep -Eq "$FQDN_REGEX"; then
   exit 1
 fi
 
-if id -u ghost3 >/dev/null 2>&1; then
-  echo "This script cannot set up more than 3 Ghost blogs on the same server."
+if id -u ghost${max_blogs} >/dev/null 2>&1; then
+  echo "This script cannot set up more than ${max_blogs} Ghost blogs on the same server."
   echo "Aborting."
   exit 1
 fi
 
+ghost_num=1
 ghost_user=ghost
+ghost_port=2368
 if id -u ghost >/dev/null 2>&1; then
   echo 'It looks like this server already has Ghost blog installed! '
   [ -d "/var/www/$1" ] && { echo "Aborting."; exit 1; }
 
-  if id -u ghost2 >/dev/null 2>&1; then
-    ghost_user=ghost3
-    touch /tmp/setting_up_ghost3
-  else
-    ghost_user=ghost2
-    touch /tmp/setting_up_ghost2
-  fi
+  for count in $(seq 2 ${max_blogs}); do
+    if ! id -u "ghost${count}" >/dev/null 2>&1; then
+      ghost_num="${count}"
+      ghost_user="ghost${count}"
+      let ghost_port=$ghost_port+$count
+      let ghost_port=$ghost_port-1
+      break
+    fi
+  done
 
   echo
   read -r -p "Do you wish to set up ANOTHER Ghost blog on this server? [y/N] " response
@@ -101,6 +107,19 @@ if id -u ghost >/dev/null 2>&1; then
           exit 1
           ;;
   esac
+
+  phymem_req=250
+  let phymem_req1=$phymem_req*$ghost_num
+  let phymem_req2=$phymem_req*$ghost_num*1000
+  [ "$ghost_num" = "3" ] && phymem_req1=500
+  [ "$ghost_num" = "3" ] && phymem_req2=500000
+
+  if [ "$phymem" -lt "$phymem_req2" ]; then
+    echo "This server does not have enough RAM to install another Ghost blog."
+    echo "An estimated minimum of $phymem_req1 MB total RAM is required."
+    exit 1
+  fi
+
 fi
 
 clear
@@ -133,8 +152,9 @@ case $response in
 esac
 
 BLOG_FQDN=$1
-export BLOG_FQDN
-echo "$BLOG_FQDN" > /tmp/BLOG_FQDN
+echo "BLOG_FQDN=$1" > /tmp/BLOG_VARS
+echo "ghost_num=${ghost_num}" >> /tmp/BLOG_VARS
+echo "ghost_port=${ghost_port}" >> /tmp/BLOG_VARS
 
 # Create and change to working dir
 mkdir -p /opt/src
@@ -195,16 +215,14 @@ useradd -d "/var/www/${BLOG_FQDN}" -m -s /bin/false "$ghost_user"
 su - "$ghost_user" -s /bin/bash -c "forever stopall"
 
 # Create temporary swap file to prevent out of memory errors during install
-# Do not create if OpenVZ VPS or if RAM size >= 750 MB
+# Do not create if OpenVZ VPS
 swap_tmp="/tmp/swapfile_temp.tmp"
 if [ ! -f /proc/user_beancounters ]; then
-  if [ "$phymem" -lt 750000 ]; then
-    echo
-    echo "Creating temporary swap file, please wait ..."
-    echo
-    dd if=/dev/zero of="$swap_tmp" bs=1M count=512 2>/dev/null || /bin/rm -f "$swap_tmp"
-    chmod 600 "$swap_tmp" && mkswap "$swap_tmp" >/dev/null && swapon "$swap_tmp"
-  fi
+  echo
+  echo "Creating temporary swap file, please wait ..."
+  echo
+  dd if=/dev/zero of="$swap_tmp" bs=1M count=512 2>/dev/null || /bin/rm -f "$swap_tmp"
+  chmod 600 "$swap_tmp" && mkswap "$swap_tmp" >/dev/null && swapon "$swap_tmp"
 fi
 
 # Switch to user "ghost".
@@ -213,9 +231,8 @@ su - "$ghost_user" -s /bin/bash <<'SU_END'
 
 # Commands below will be run as user "ghost".
 
-# Retrieve domain name from temp file:
-BLOG_FQDN=$(cat /tmp/BLOG_FQDN)
-export BLOG_FQDN
+# Retrieve variables from temp file:
+. /tmp/BLOG_VARS
 
 # Get the ghost blog source (latest version), unzip and install.
 wget -t 3 -T 30 -nv -O ghost-latest.zip https://ghost.org/zip/ghost-latest.zip
@@ -226,12 +243,7 @@ npm install --production
 # Generate config file and make sure that Ghost uses your actual domain name
 /bin/cp -f config.js config.js.old 2>/dev/null
 sed "s/my-ghost-blog.com/${BLOG_FQDN}/" <config.example.js >config.js
-
-if [ -f "/tmp/setting_up_ghost2" ]; then
-  sed -i "s/port: '2368'/port: '2369'/" config.js
-elif [ -f "/tmp/setting_up_ghost3" ]; then
-  sed -i "s/port: '2368'/port: '2370'/" config.js
-fi
+sed -i "s/port: '2368'/port: '${ghost_port}'/" config.js
 
 # We need to make certain that Ghost will start automatically after a reboot
 cat > starter.sh <<'EOF'
@@ -249,12 +261,9 @@ EOF
 # Replace placeholder with your actual domain name:
 sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/" starter.sh
 
-if [ -f "/tmp/setting_up_ghost2" ]; then
-  sed -i "/^pgrep/s/ghost/ghost2/" starter.sh
-  sed -i "s/nodelog\.txt/nodelog2.txt/" starter.sh
-elif [ -f "/tmp/setting_up_ghost3" ]; then
-  sed -i "/^pgrep/s/ghost/ghost3/" starter.sh
-  sed -i "s/nodelog\.txt/nodelog3.txt/" starter.sh
+if [ "$ghost_num" != "1" ]; then
+  sed -i "/^pgrep/s/ghost/ghost${ghost_num}/" starter.sh
+  sed -i "s/nodelog\.txt/nodelog${ghost_num}.txt/" starter.sh
 fi
 
 # Make the script executable with:
@@ -284,12 +293,9 @@ exit
 touch /var/log/nodelog.txt
 chown ghost.ghost /var/log/nodelog.txt
 
-if [ "$ghost_user" = "ghost2" ]; then
-  touch /var/log/nodelog2.txt
-  chown ghost2.ghost2 /var/log/nodelog2.txt
-elif [ "$ghost_user" = "ghost3" ]; then
-  touch /var/log/nodelog3.txt
-  chown ghost3.ghost3 /var/log/nodelog3.txt
+if [ "$ghost_num" != "1" ]; then
+  touch "/var/log/nodelog${ghost_num}.txt"
+  chown "ghost${ghost_num}.ghost${ghost_num}" "/var/log/nodelog${ghost_num}.txt"
 fi
 
 # Download and compile ModSecurity:
@@ -416,24 +422,25 @@ mkdir -p "/var/www/${BLOG_FQDN}/public"
 # Download example Nginx configuration file
 cd /opt/nginx/conf || exit 1
 /bin/cp -f nginx.conf nginx.conf.old
-if [ "$ghost_user" = "ghost" ]; then
-  example_conf=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-modsecurity.conf
-  wget -t 3 -T 30 -nv -O nginx.conf $example_conf
+if [ "$ghost_num" = "1" ]; then
+  example_conf1=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-modsecurity.conf
+  wget -t 3 -T 30 -nv -O nginx.conf "$example_conf1"
   [ "$?" != "0" ] && { echo "Cannot download example nginx.conf. Aborting."; exit 1; }
-
-  # Disable SSL configuration for now (enable it after you fully set it up)
-  sed -i -e "s/listen 443/# listen 443/" -e "s/ssl_/# ssl_/" nginx.conf
 fi
+example_conf2=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-modsecurity-include.conf
+wget -t 3 -T 30 -nv -O nginx-include.conf "$example_conf2"
+[ "$?" != "0" ] && { echo "Cannot download example nginx.conf. Aborting."; exit 1; }
 
-# Replace placeholder with your actual domain name:
-if [ "$ghost_user" = "ghost2" ]; then
-  sed -i "/^#/s/#//" nginx.conf
-  sed -i "s/YOUR.DOMAIN2.NAME/${BLOG_FQDN}/g" nginx.conf
-elif [ "$ghost_user" = "ghost3" ]; then
-  sed -i "/^#/s/#//" nginx.conf
-  sed -i "s/YOUR.DOMAIN3.NAME/${BLOG_FQDN}/g" nginx.conf
+# Modify example configuration for use
+if [ "$ghost_num" = "1" ]; then
+  /bin/cp -f nginx-include.conf nginx-blog1.conf
+  sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" nginx-blog1.conf
 else
-  sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" nginx.conf
+  /bin/cp -f nginx-include.conf "nginx-blog${ghost_num}.conf"
+  sed -i -e "/127\.0\.0\.1:2368/s/2368/${ghost_port}/" \
+         -e "s/ghost_upstream/ghost_upstream${ghost_num}/" \
+         -e "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" "nginx-blog${ghost_num}.conf"
+  sed -i "/include nginx-blog1\.conf/ainclude nginx-blog${ghost_num}.conf;" nginx.conf
 fi
 
 # Check the validity of the nginx.conf file:
@@ -450,15 +457,8 @@ service nginx restart
 # Retrieve server IP for display below
 PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
 
-# Define port number for display below
-ghost_port=2368
-[ -f "/tmp/setting_up_ghost2" ] && ghost_port=2369
-[ -f "/tmp/setting_up_ghost3" ] && ghost_port=2370
-
 # Remove temporary files
-/bin/rm -f /tmp/BLOG_FQDN
-/bin/rm -f /tmp/setting_up_ghost2
-/bin/rm -f /tmp/setting_up_ghost3
+/bin/rm -f /tmp/BLOG_VARS
 
 echo
 echo "============================================================================================="

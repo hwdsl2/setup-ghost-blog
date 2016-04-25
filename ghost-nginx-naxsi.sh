@@ -455,9 +455,9 @@ echo "==========================================================================
 echo
 echo 'Setup is complete. Your new blog is now ready for use!'
 echo
-echo "Ghost blog is installed in: /var/www/${BLOG_FQDN}"
+echo "Ghost blog was installed in: /var/www/${BLOG_FQDN}"
 echo "Naxsi and Nginx config files: /etc/nginx and /opt/nginx/conf"
-echo "Nginx web server logs: /opt/nginx/logs"
+echo "Nginx access and error logs: /opt/nginx/logs"
 echo
 echo "[Next Steps]"
 echo
@@ -466,15 +466,18 @@ echo
 echo "Browse to http://${BLOG_FQDN}/ghost (or http://localhost:${ghost_port}/ghost via SSH port forwarding)"
 echo "to configure your blog and create an admin user. Choose a very secure password."
 echo
-echo "Next, follow additional instructions at the link below to:"
-echo "https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/#naxsi1"
+echo "To restart Ghost: su - $ghost_user -s /bin/bash -c 'forever stopall; ./starter.sh'"
+echo "To restart Nginx: service nginx restart"
 echo
-echo "1. Set Up HTTPS for Your Blog (Optional)"
-echo "2. Sitemap, Robots.txt and Extras (Optional)"
-echo "3. Setting Up E-Mail on Ghost (Optional)"
+echo "[Optional] Follow additional instructions at the link below to:"
+echo "https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/"
 echo
-echo "Questions? Refer to the official Ghost Guide: http://support.ghost.org/"
-echo "Documentation for Naxsi: https://github.com/nbs-system/naxsi/wiki"
+echo "1. Set Up HTTPS for Your Blog"
+echo "2. Sitemap, Robots.txt and Extras"
+echo "3. Setting Up E-Mail on Ghost"
+echo
+echo "Questions? See official guide: http://support.ghost.org Slack chat: https://ghost.org/slack/"
+echo "and Naxsi documentation: https://github.com/nbs-system/naxsi/wiki"
 echo
 echo "============================================================================================="
 echo

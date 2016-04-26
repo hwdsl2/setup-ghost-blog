@@ -31,19 +31,19 @@ if [ "$os_type" != "Ubuntu" ] && [ "$os_type" != "Debian" ]; then
 fi
 
 if [ "$os_type" = "Ubuntu" ]; then
-os_ver="$(lsb_release -sr)"
-if [ "$os_ver" != "16.04" ] && [ "$os_ver" != "14.04" ] && [ "$os_ver" != "12.04" ]; then
-  echo "This script only supports Ubuntu 16.04, 14.04 and 12.04."
-  exit 1
-fi
+  os_ver="$(lsb_release -sr)"
+  if [ "$os_ver" != "16.04" ] && [ "$os_ver" != "14.04" ] && [ "$os_ver" != "12.04" ]; then
+    echo "This script only supports Ubuntu 16.04, 14.04 and 12.04."
+    exit 1
+  fi
 fi
 
 if [ "$os_type" = "Debian" ]; then
-os_ver="$(sed 's/\..*//' /etc/debian_version 2>/dev/null)"
-if [ "$os_ver" != "8" ]; then
-  echo "This script only supports Debian 8 (Jessie)."
-  exit 1
-fi
+  os_ver="$(sed 's/\..*//' /etc/debian_version 2>/dev/null)"
+  if [ "$os_ver" != "8" ]; then
+    echo "This script only supports Debian 8 (Jessie)."
+    exit 1
+  fi
 fi
 
 if [ "$(id -u)" != 0 ]; then
@@ -52,30 +52,27 @@ if [ "$(id -u)" != 0 ]; then
 fi
 
 phymem="$(free | awk '/^Mem:/{print $2}')"
-[ -z "$phymem" ] && phymem=500000
+[ -z "$phymem" ] && phymem=0
 if [ "$phymem" -lt 500000 ]; then
   echo "This server does not have enough RAM. Setup cannot continue."
-  echo "A minimum of 512MB RAM is required for Ghost blog install."
+  echo "A minimum of 512 MB RAM is required for Ghost blog install."
   exit 1
 fi
 
 if [ "$1" = "" ] || [ "$1" = "BLOG_FULL_DOMAIN_NAME" ]; then
   script_name=$(basename "$0")
-  echo "Usage: bash $script_name BLOG_FULL_DOMAIN_NAME"
-  echo '(Replace the above with your actual domain name)'
+  echo "Usage: bash $script_name BLOG_FULL_DOMAIN_NAME (Replace with actual domain name)"
   exit 1
 fi
 
 FQDN_REGEX='^(([a-zA-Z](-?[a-zA-Z0-9])*)\.)*[a-zA-Z](-?[a-zA-Z0-9])+\.[a-zA-Z]{2,}$'
 if ! printf %s "$1" | grep -Eq "$FQDN_REGEX"; then
   echo "Invalid parameter. You must enter a fully qualified domain name (FQDN)."
-  echo "Aborting."
   exit 1
 fi
 
-if id -u ghost${max_blogs} >/dev/null 2>&1; then
-  echo "This script cannot set up more than ${max_blogs} Ghost blogs on the same server."
-  echo "Aborting."
+if id -u "ghost${max_blogs}" >/dev/null 2>&1; then
+  echo "Maximum number of Ghost blogs (${max_blogs}) reached. Aborting."
   exit 1
 fi
 
@@ -84,7 +81,10 @@ ghost_user=ghost
 ghost_port=2368
 if id -u ghost >/dev/null 2>&1; then
   echo 'It looks like this server already has Ghost blog installed! '
-  [ -d "/var/www/$1" ] && { echo "Aborting."; exit 1; }
+  if [ -d "/var/www/$1" ]; then
+    echo "To install additional blogs, you must use a new full domain name."
+    exit 1
+  fi
 
   for count in $(seq 2 ${max_blogs}); do
     if ! id -u "ghost${count}" >/dev/null 2>&1; then
@@ -97,7 +97,7 @@ if id -u ghost >/dev/null 2>&1; then
   done
 
   echo
-  read -r -p "Do you wish to set up ANOTHER Ghost blog on this server? [y/N] " response
+  read -r -p "Install ANOTHER Ghost blog on this server? [y/N] " response
   case $response in
       [yY][eE][sS]|[yY])
           echo
@@ -115,14 +115,27 @@ if id -u ghost >/dev/null 2>&1; then
   [ "$ghost_num" = "3" ] && phymem_req2=500000
 
   if [ "$phymem" -lt "$phymem_req2" ]; then
-    echo "This server does not have enough RAM to install another Ghost blog."
-    echo "An estimated minimum of $phymem_req1 MB total RAM is required."
-    exit 1
-  fi
+    echo "This server may not have enough RAM to install another Ghost blog."
+    echo "It is estimated that at least $phymem_req1 MB total RAM is required."
+    echo
+    echo 'WARNING! If you continue, the install could fail and your blog will not work!'
+    echo
+    read -r -p "Do you REALLY want to continue (at your own risk)? [y/N] " response
+    case $response in
+        [yY][eE][sS]|[yY])
+            echo
+            ;;
+        *)
+            echo "Aborting."
+            exit 1
+            ;;
+    esac
 
+  fi
 fi
 
 clear
+
 echo 'Welcome! This script installs Ghost blog (https://ghost.org) on your server,'
 echo 'with Nginx (as a reverse proxy) and Naxsi web application firewall.'
 echo
@@ -134,7 +147,7 @@ echo 'Please double check. This MUST be correct for it to work!'
 echo
 echo 'IMPORTANT NOTES:'
 echo 'This script should only be used on a Virtual Private Server (VPS) or dedicated server,'
-echo 'with *freshly installed* Ubuntu LTS or Debian 8. A minimum of 512MB RAM is required.'
+echo 'with *freshly installed* Ubuntu LTS or Debian 8.'
 echo '*DO NOT* run this script on your PC or Mac!'
 echo
 
@@ -152,9 +165,9 @@ case $response in
 esac
 
 BLOG_FQDN=$1
-echo "BLOG_FQDN=$1" > /tmp/BLOG_VARS
-echo "ghost_num=${ghost_num}" >> /tmp/BLOG_VARS
-echo "ghost_port=${ghost_port}" >> /tmp/BLOG_VARS
+echo "BLOG_FQDN='$1'" > /tmp/BLOG_VARS
+echo "ghost_num='${ghost_num}'" >> /tmp/BLOG_VARS
+echo "ghost_port='${ghost_port}'" >> /tmp/BLOG_VARS
 
 # Create and change to working dir
 mkdir -p /opt/src
@@ -289,10 +302,10 @@ exit
 # Commands below will be run as "root".
 
 # Create the logfile:
-touch /var/log/nodelog.txt
-chown ghost.ghost /var/log/nodelog.txt
-
-if [ "$ghost_num" != "1" ]; then
+if [ "$ghost_num" = "1" ]; then
+  touch /var/log/nodelog.txt
+  chown ghost.ghost /var/log/nodelog.txt
+else
   touch "/var/log/nodelog${ghost_num}.txt"
   chown "ghost${ghost_num}.ghost${ghost_num}" "/var/log/nodelog${ghost_num}.txt"
 fi
@@ -309,7 +322,7 @@ adduser --system --no-create-home --disabled-login --disabled-password --group n
 cd /opt/src || exit 1
 wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.8.1.tar.gz | tar xvz
 [ ! -d nginx-1.8.1 ] && { echo "Cannot download Nginx source. Aborting."; exit 1; }
-cd nginx-1.8.1 || { echo "Cannot enter Nginx source dir. Aborting."; exit 1; }
+cd nginx-1.8.1 || exit 1
 ./configure --add-module=../naxsi-0.54/naxsi_src/ \
   --prefix=/opt/nginx --user=nginx --group=nginx \
   --with-http_ssl_module --with-http_spdy_module --with-http_realip_module
@@ -355,8 +368,7 @@ EOF
 
 # Set up NXAPI (Naxsi log parser, whitelist & report generator)
 # Ref: https://github.com/nbs-system/naxsi/tree/master/nxapi
-cd /opt/src/naxsi-0.54/nxapi/ || { echo "Cannot enter Naxsi NXAPI dir. Aborting."; exit 1; }
-python setup.py install
+cd /opt/src/naxsi-0.54/nxapi/ && python setup.py install
 
 # Create the following files to make Nginx autorun:
 
@@ -417,9 +429,12 @@ if [ "$ghost_num" = "1" ]; then
   wget -t 3 -T 30 -nv -O nginx.conf "$example_conf1"
   [ "$?" != "0" ] && { echo "Cannot download example nginx.conf. Aborting."; exit 1; }
 fi
-example_conf2=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-naxsi-include.conf
-wget -t 3 -T 30 -nv -O nginx-include.conf "$example_conf2"
-[ "$?" != "0" ] && { echo "Cannot download example nginx.conf. Aborting."; exit 1; }
+
+if [ "$ghost_num" = "1" ] || [ ! -f nginx-include.conf ]; then
+  example_conf2=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-naxsi-include.conf
+  wget -t 3 -T 30 -nv -O nginx-include.conf "$example_conf2"
+  [ "$?" != "0" ] && { echo "Cannot download example nginx.conf. Aborting."; exit 1; }
+fi
 
 # Modify example configuration for use
 if [ "$ghost_num" = "1" ]; then

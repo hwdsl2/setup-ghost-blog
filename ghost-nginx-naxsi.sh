@@ -213,8 +213,10 @@ service fail2ban start
 
 # Next, we need to install Node.js.
 # Ref: https://github.com/nodesource/distributions#debinstall
-curl -sL https://deb.nodesource.com/setup_0.12 | bash -
-apt-get -y install nodejs=0.12\*
+if [ "$ghost_num" = "1" ] || [ ! -f /usr/bin/node ]; then
+  curl -sL https://deb.nodesource.com/setup_0.12 | bash -
+  apt-get -y install nodejs=0.12\*
+fi
 
 # To keep your Ghost blog running, install "forever".
 npm install forever -g
@@ -282,7 +284,7 @@ fi
 chmod +x starter.sh
 
 # We use crontab to start this script after a reboot:
-crontab -r
+crontab -r 2>/dev/null
 crontab -l 2>/dev/null | { cat; echo "@reboot /var/www/${BLOG_FQDN}/starter.sh"; } | crontab -
 
 # SKIP this line if running script manually
@@ -309,6 +311,8 @@ else
   touch "/var/log/nodelog${ghost_num}.txt"
   chown "ghost${ghost_num}.ghost${ghost_num}" "/var/log/nodelog${ghost_num}.txt"
 fi
+
+if [ "$ghost_num" = "1" ] || [ ! -f /opt/nginx/sbin/nginx ]; then
 
 # Download and extract Naxsi:
 cd /opt/src || exit 1
@@ -415,6 +419,8 @@ EOF
 
 systemctl daemon-reload 2>/dev/null
 systemctl enable nginx.service 2>/dev/null
+
+fi
 
 fi
 

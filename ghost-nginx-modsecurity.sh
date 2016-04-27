@@ -330,14 +330,14 @@ make
 # Next we create a user for nginx:
 adduser --system --no-create-home --disabled-login --disabled-password --group nginx
 
-# Download and compile the latest version of Nginx:
+# Download and compile Nginx:
 cd /opt/src || exit 1
-wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.8.1.tar.gz | tar xvz
-[ ! -d nginx-1.8.1 ] && { echo "Cannot download Nginx source. Aborting."; exit 1; }
-cd nginx-1.8.1 || exit 1
+wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.10.0.tar.gz | tar xvz
+[ ! -d nginx-1.10.0 ] && { echo "Cannot download Nginx source. Aborting."; exit 1; }
+cd nginx-1.10.0 || exit 1
 ./configure --add-module=../ModSecurity-nginx_refactoring/nginx/modsecurity \
   --prefix=/opt/nginx --user=nginx --group=nginx \
-  --with-http_ssl_module --with-http_spdy_module --with-http_realip_module
+  --with-http_ssl_module --with-http_v2_module --with-http_realip_module
 make && make install
 
 # Copy the ModSecurity configuration file to the Nginx directory:

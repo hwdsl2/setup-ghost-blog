@@ -22,6 +22,8 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see http://www.gnu.org/licenses/.
 
+max_blogs=10
+
 os_type="$(lsb_release -si 2>/dev/null)"
 if [ "$os_type" != "Ubuntu" ] && [ "$os_type" != "Debian" ]; then
   echo "This script only supports Ubuntu or Debian systems."
@@ -29,19 +31,19 @@ if [ "$os_type" != "Ubuntu" ] && [ "$os_type" != "Debian" ]; then
 fi
 
 if [ "$os_type" = "Ubuntu" ]; then
-os_ver="$(lsb_release -sr)"
-if [ "$os_ver" != "16.04" ] && [ "$os_ver" != "14.04" ] && [ "$os_ver" != "12.04" ]; then
-  echo "This script only supports Ubuntu 16.04, 14.04 and 12.04."
-  exit 1
-fi
+  os_ver="$(lsb_release -sr)"
+  if [ "$os_ver" != "16.04" ] && [ "$os_ver" != "14.04" ] && [ "$os_ver" != "12.04" ]; then
+    echo "This script only supports Ubuntu 16.04, 14.04 and 12.04."
+    exit 1
+  fi
 fi
 
 if [ "$os_type" = "Debian" ]; then
-os_ver="$(sed 's/\..*//' /etc/debian_version 2>/dev/null)"
-if [ "$os_ver" != "8" ]; then
-  echo "This script only supports Debian 8 (Jessie)."
-  exit 1
-fi
+  os_ver="$(sed 's/\..*//' /etc/debian_version 2>/dev/null)"
+  if [ "$os_ver" != "8" ]; then
+    echo "This script only supports Debian 8 (Jessie)."
+    exit 1
+  fi
 fi
 
 if [ "$(id -u)" != 0 ]; then
@@ -50,41 +52,52 @@ if [ "$(id -u)" != 0 ]; then
 fi
 
 phymem="$(free | awk '/^Mem:/{print $2}')"
-[ -z "$phymem" ] && phymem=500000
+[ -z "$phymem" ] && phymem=0
 if [ "$phymem" -lt 500000 ]; then
   echo "This server does not have enough RAM. Setup cannot continue."
-  echo "A minimum of 512MB RAM is required for Ghost blog install."
+  echo "A minimum of 512 MB RAM is required for Ghost blog install."
   exit 1
 fi
 
 if [ "$1" = "" ] || [ "$1" = "BLOG_FULL_DOMAIN_NAME" ]; then
   script_name=$(basename "$0")
-  echo "Usage: bash $script_name BLOG_FULL_DOMAIN_NAME"
-  echo '(Replace the above with your actual domain name)'
+  echo "Usage: bash $script_name BLOG_FULL_DOMAIN_NAME (Replace with actual domain name)"
   exit 1
 fi
 
-if id -u ghost3 >/dev/null 2>&1; then
-  echo "This script cannot set up more than 3 Ghost blogs on the same server."
-  echo "Aborting."
+FQDN_REGEX='^(([a-zA-Z](-?[a-zA-Z0-9])*)\.)*[a-zA-Z](-?[a-zA-Z0-9])+\.[a-zA-Z]{2,}$'
+if ! printf %s "$1" | grep -Eq "$FQDN_REGEX"; then
+  echo "Invalid parameter. You must enter a fully qualified domain name (FQDN)."
   exit 1
 fi
 
+if id -u "ghost${max_blogs}" >/dev/null 2>&1; then
+  echo "Maximum number of Ghost blogs (${max_blogs}) reached. Aborting."
+  exit 1
+fi
+
+ghost_num=1
 ghost_user=ghost
+ghost_port=2368
 if id -u ghost >/dev/null 2>&1; then
   echo 'It looks like this server already has Ghost blog installed! '
-  [ -d "/var/www/$1" ] && { echo "Aborting."; exit 1; }
-
-  if id -u ghost2 >/dev/null 2>&1; then
-    ghost_user=ghost3
-    touch /tmp/setting_up_ghost3
-  else
-    ghost_user=ghost2
-    touch /tmp/setting_up_ghost2
+  if [ -d "/var/www/$1" ]; then
+    echo "To install additional blogs, you must use a new full domain name."
+    exit 1
   fi
 
+  for count in $(seq 2 ${max_blogs}); do
+    if ! id -u "ghost${count}" >/dev/null 2>&1; then
+      ghost_num="${count}"
+      ghost_user="ghost${count}"
+      let ghost_port=$ghost_port+$count
+      let ghost_port=$ghost_port-1
+      break
+    fi
+  done
+
   echo
-  read -r -p "Do you wish to set up ANOTHER Ghost blog on this server? [y/N] " response
+  read -r -p "Install ANOTHER Ghost blog on this server? [y/N] " response
   case $response in
       [yY][eE][sS]|[yY])
           echo
@@ -94,9 +107,35 @@ if id -u ghost >/dev/null 2>&1; then
           exit 1
           ;;
   esac
+
+  phymem_req=250
+  let phymem_req1=$phymem_req*$ghost_num
+  let phymem_req2=$phymem_req*$ghost_num*1000
+  [ "$ghost_num" = "3" ] && phymem_req1=500
+  [ "$ghost_num" = "3" ] && phymem_req2=500000
+
+  if [ "$phymem" -lt "$phymem_req2" ]; then
+    echo "This server may not have enough RAM to install another Ghost blog."
+    echo "It is estimated that at least $phymem_req1 MB total RAM is required."
+    echo
+    echo 'WARNING! If you continue, the install could fail and your blog will not work!'
+    echo
+    read -r -p "Do you REALLY want to continue (at your own risk)? [y/N] " response
+    case $response in
+        [yY][eE][sS]|[yY])
+            echo
+            ;;
+        *)
+            echo "Aborting."
+            exit 1
+            ;;
+    esac
+
+  fi
 fi
 
 clear
+
 echo 'Welcome! This script installs Ghost blog (https://ghost.org) on your server,'
 echo 'with Nginx (as a reverse proxy) and Modsecurity web application firewall.'
 echo
@@ -108,7 +147,7 @@ echo 'Please double check. This MUST be correct for it to work!'
 echo
 echo 'IMPORTANT NOTES:'
 echo 'This script should only be used on a Virtual Private Server (VPS) or dedicated server,'
-echo 'with *freshly installed* Ubuntu LTS or Debian 8. A minimum of 512MB RAM is required.'
+echo 'with *freshly installed* Ubuntu LTS or Debian 8.'
 echo '*DO NOT* run this script on your PC or Mac!'
 echo
 
@@ -126,8 +165,9 @@ case $response in
 esac
 
 BLOG_FQDN=$1
-export BLOG_FQDN
-echo "$BLOG_FQDN" > /tmp/BLOG_FQDN
+echo "BLOG_FQDN='$1'" > /tmp/BLOG_VARS
+echo "ghost_num='${ghost_num}'" >> /tmp/BLOG_VARS
+echo "ghost_port='${ghost_port}'" >> /tmp/BLOG_VARS
 
 # Create and change to working dir
 mkdir -p /opt/src
@@ -174,8 +214,10 @@ service fail2ban start
 
 # Next, we need to install Node.js.
 # Ref: https://github.com/nodesource/distributions#debinstall
-curl -sL https://deb.nodesource.com/setup_0.12 | bash -
-apt-get -y install nodejs=0.12\*
+if [ "$ghost_num" = "1" ] || [ ! -f /usr/bin/node ]; then
+  curl -sL https://deb.nodesource.com/setup_0.12 | bash -
+  apt-get -y install nodejs=0.12\*
+fi
 
 # To keep your Ghost blog running, install "forever".
 npm install forever -g
@@ -188,16 +230,14 @@ useradd -d "/var/www/${BLOG_FQDN}" -m -s /bin/false "$ghost_user"
 su - "$ghost_user" -s /bin/bash -c "forever stopall"
 
 # Create temporary swap file to prevent out of memory errors during install
-# Do not create if OpenVZ VPS or if RAM size >= 750 MB
+# Do not create if OpenVZ VPS
 swap_tmp="/tmp/swapfile_temp.tmp"
 if [ ! -f /proc/user_beancounters ]; then
-  if [ "$phymem" -lt 750000 ]; then
-    echo
-    echo "Creating temporary swap file, please wait ..."
-    echo
-    dd if=/dev/zero of="$swap_tmp" bs=1M count=512 2>/dev/null || /bin/rm -f "$swap_tmp"
-    chmod 600 "$swap_tmp" && mkswap "$swap_tmp" >/dev/null && swapon "$swap_tmp"
-  fi
+  echo
+  echo "Creating temporary swap file, please wait ..."
+  echo
+  dd if=/dev/zero of="$swap_tmp" bs=1M count=512 2>/dev/null || /bin/rm -f "$swap_tmp"
+  chmod 600 "$swap_tmp" && mkswap "$swap_tmp" >/dev/null && swapon "$swap_tmp"
 fi
 
 # Switch to user "ghost".
@@ -206,9 +246,8 @@ su - "$ghost_user" -s /bin/bash <<'SU_END'
 
 # Commands below will be run as user "ghost".
 
-# Retrieve domain name from temp file:
-BLOG_FQDN=$(cat /tmp/BLOG_FQDN)
-export BLOG_FQDN
+# Retrieve variables from temp file:
+. /tmp/BLOG_VARS
 
 # Get the ghost blog source (latest version), unzip and install.
 wget -t 3 -T 30 -nv -O ghost-latest.zip https://ghost.org/zip/ghost-latest.zip
@@ -219,12 +258,7 @@ npm install --production
 # Generate config file and make sure that Ghost uses your actual domain name
 /bin/cp -f config.js config.js.old 2>/dev/null
 sed "s/my-ghost-blog.com/${BLOG_FQDN}/" <config.example.js >config.js
-
-if [ -f "/tmp/setting_up_ghost2" ]; then
-  sed -i "s/port: '2368'/port: '2369'/" config.js
-elif [ -f "/tmp/setting_up_ghost3" ]; then
-  sed -i "s/port: '2368'/port: '2370'/" config.js
-fi
+sed -i "s/port: '2368'/port: '${ghost_port}'/" config.js
 
 # We need to make certain that Ghost will start automatically after a reboot
 cat > starter.sh <<'EOF'
@@ -242,19 +276,16 @@ EOF
 # Replace placeholder with your actual domain name:
 sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/" starter.sh
 
-if [ -f "/tmp/setting_up_ghost2" ]; then
-  sed -i "/^pgrep/s/ghost/ghost2/" starter.sh
-  sed -i "s/nodelog\.txt/nodelog2.txt/" starter.sh
-elif [ -f "/tmp/setting_up_ghost3" ]; then
-  sed -i "/^pgrep/s/ghost/ghost3/" starter.sh
-  sed -i "s/nodelog\.txt/nodelog3.txt/" starter.sh
+if [ "$ghost_num" != "1" ]; then
+  sed -i "/^pgrep/s/ghost/ghost${ghost_num}/" starter.sh
+  sed -i "s/nodelog\.txt/nodelog${ghost_num}.txt/" starter.sh
 fi
 
 # Make the script executable with:
 chmod +x starter.sh
 
 # We use crontab to start this script after a reboot:
-crontab -r
+crontab -r 2>/dev/null
 crontab -l 2>/dev/null | { cat; echo "@reboot /var/www/${BLOG_FQDN}/starter.sh"; } | crontab -
 
 # SKIP this line if running script manually
@@ -274,16 +305,15 @@ exit
 # Commands below will be run as "root".
 
 # Create the logfile:
-touch /var/log/nodelog.txt
-chown ghost.ghost /var/log/nodelog.txt
-
-if [ "$ghost_user" = "ghost2" ]; then
-  touch /var/log/nodelog2.txt
-  chown ghost2.ghost2 /var/log/nodelog2.txt
-elif [ "$ghost_user" = "ghost3" ]; then
-  touch /var/log/nodelog3.txt
-  chown ghost3.ghost3 /var/log/nodelog3.txt
+if [ "$ghost_num" = "1" ]; then
+  touch /var/log/nodelog.txt
+  chown ghost.ghost /var/log/nodelog.txt
+else
+  touch "/var/log/nodelog${ghost_num}.txt"
+  chown "ghost${ghost_num}.ghost${ghost_num}" "/var/log/nodelog${ghost_num}.txt"
 fi
+
+if [ "$ghost_num" = "1" ] || [ ! -f /opt/nginx/sbin/nginx ]; then
 
 # Download and compile ModSecurity:
 # We use ModSecurity's sources from "nginx_refactoring" branch for improved stability.
@@ -300,14 +330,14 @@ make
 # Next we create a user for nginx:
 adduser --system --no-create-home --disabled-login --disabled-password --group nginx
 
-# Download and compile the latest version of Nginx:
+# Download and compile Nginx:
 cd /opt/src || exit 1
-wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.8.1.tar.gz | tar xvz
-[ ! -d nginx-1.8.1 ] && { echo "Cannot download Nginx source. Aborting."; exit 1; }
-cd nginx-1.8.1 || { echo "Cannot enter Nginx source dir. Aborting."; exit 1; }
+wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.10.0.tar.gz | tar xvz
+[ ! -d nginx-1.10.0 ] && { echo "Cannot download Nginx source. Aborting."; exit 1; }
+cd nginx-1.10.0 || exit 1
 ./configure --add-module=../ModSecurity-nginx_refactoring/nginx/modsecurity \
   --prefix=/opt/nginx --user=nginx --group=nginx \
-  --with-http_ssl_module --with-http_spdy_module --with-http_realip_module
+  --with-http_ssl_module --with-http_v2_module --with-http_realip_module
 make && make install
 
 # Copy the ModSecurity configuration file to the Nginx directory:
@@ -403,30 +433,36 @@ systemctl enable nginx.service 2>/dev/null
 
 fi
 
+fi
+
 # Create the public folder which will hold robots.txt, etc.
 mkdir -p "/var/www/${BLOG_FQDN}/public"
 
 # Download example Nginx configuration file
 cd /opt/nginx/conf || exit 1
 /bin/cp -f nginx.conf nginx.conf.old
-if [ "$ghost_user" = "ghost" ]; then
-  example_conf=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-modsecurity.conf
-  wget -t 3 -T 30 -nv -O nginx.conf $example_conf
+if [ "$ghost_num" = "1" ]; then
+  example_conf1=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-modsecurity.conf
+  wget -t 3 -T 30 -nv -O nginx.conf "$example_conf1"
   [ "$?" != "0" ] && { echo "Cannot download example nginx.conf. Aborting."; exit 1; }
-
-  # Disable SSL configuration for now (enable it after you fully set it up)
-  sed -i -e "s/listen 443/# listen 443/" -e "s/ssl_/# ssl_/" nginx.conf
 fi
 
-# Replace placeholder with your actual domain name:
-if [ "$ghost_user" = "ghost2" ]; then
-  sed -i "/^#/s/#//" nginx.conf
-  sed -i "s/YOUR.DOMAIN2.NAME/${BLOG_FQDN}/g" nginx.conf
-elif [ "$ghost_user" = "ghost3" ]; then
-  sed -i "/^#/s/#//" nginx.conf
-  sed -i "s/YOUR.DOMAIN3.NAME/${BLOG_FQDN}/g" nginx.conf
+if [ "$ghost_num" = "1" ] || [ ! -f nginx-include.conf ]; then
+  example_conf2=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-modsecurity-include.conf
+  wget -t 3 -T 30 -nv -O nginx-include.conf "$example_conf2"
+  [ "$?" != "0" ] && { echo "Cannot download example nginx.conf. Aborting."; exit 1; }
+fi
+
+# Modify example configuration for use
+if [ "$ghost_num" = "1" ]; then
+  /bin/cp -f nginx-include.conf nginx-blog1.conf
+  sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" nginx-blog1.conf
 else
-  sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" nginx.conf
+  /bin/cp -f nginx-include.conf "nginx-blog${ghost_num}.conf"
+  sed -i -e "/127\.0\.0\.1:2368/s/2368/${ghost_port}/" \
+         -e "s/ghost_upstream/ghost_upstream${ghost_num}/" \
+         -e "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" "nginx-blog${ghost_num}.conf"
+  sed -i "/include nginx-blog1\.conf/ainclude nginx-blog${ghost_num}.conf;" nginx.conf
 fi
 
 # Check the validity of the nginx.conf file:
@@ -440,38 +476,39 @@ echo; /opt/nginx/sbin/nginx -t; echo
 su - "$ghost_user" -s /bin/bash -c "./starter.sh"
 service nginx restart
 
-# Remove temporary file
-/bin/rm -f /tmp/BLOG_FQDN
-/bin/rm -f /tmp/setting_up_ghost2
-/bin/rm -f /tmp/setting_up_ghost3
-
 # Retrieve server IP for display below
 PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
+
+# Remove temporary files
+/bin/rm -f /tmp/BLOG_VARS
 
 echo
 echo "============================================================================================="
 echo
 echo 'Setup is complete. Your new blog is now ready for use!'
 echo
-echo "Ghost blog is installed in: /var/www/${BLOG_FQDN}"
+echo "Ghost blog was installed in: /var/www/${BLOG_FQDN}"
 echo "ModSecurity and Nginx config files: /opt/nginx/conf"
-echo "Nginx web server logs: /opt/nginx/logs"
+echo "Nginx access and error logs: /opt/nginx/logs"
 echo
 echo "[Next Steps]"
 echo
 echo "You must set up DNS (A Record) to point ${BLOG_FQDN} to this server's IP ${PUBLIC_IP}"
 echo
-echo "Browse to http://${BLOG_FQDN}/ghost (or http://localhost:2368/ghost via SSH port forwarding)"
+echo "Browse to http://${BLOG_FQDN}/ghost (or http://localhost:${ghost_port}/ghost via SSH port forwarding)"
 echo "to configure your blog and create an admin user. Choose a very secure password."
 echo
-echo "Next, follow additional instructions at the link below to:"
-echo "https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/#tag1"
+echo "To restart Ghost: su - $ghost_user -s /bin/bash -c 'forever stopall; ./starter.sh'"
+echo "To restart Nginx: service nginx restart"
 echo
-echo "1. Set Up HTTPS for Your Blog (Optional)"
-echo "2. Sitemap, Robots.txt and Extras (Optional)"
-echo "3. Setting Up E-Mail on Ghost (Optional)"
+echo "[Optional] Follow additional instructions at the link below to:"
+echo "https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/"
 echo
-echo "Questions? Refer to the official Ghost Guide: http://support.ghost.org/"
+echo "1. Set Up HTTPS for Your Blog"
+echo "2. Sitemap, Robots.txt and Extras"
+echo "3. Setting Up E-Mail on Ghost"
+echo
+echo "Questions? See official guide: http://support.ghost.org Slack chat: https://ghost.org/slack/"
 echo
 echo "============================================================================================="
 echo

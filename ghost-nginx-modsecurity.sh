@@ -495,8 +495,18 @@ echo "[Next Steps]"
 echo
 echo "You must set up DNS (A Record) to point ${BLOG_FQDN} to this server's IP ${PUBLIC_IP}"
 echo
-echo "Browse to http://${BLOG_FQDN}/ghost (or http://localhost:${ghost_port}/ghost via SSH port forwarding)"
-echo "to configure your blog and create an admin user. Choose a very secure password."
+
+if [ "$ghost_num" = "1" ]; then
+  echo "Browse to http://${BLOG_FQDN}/ghost (or http://localhost:${ghost_port}/ghost via SSH port forwarding)"
+  echo "to configure your blog and create an admin user. Choose a very secure password."
+else
+  echo "IMPORTANT: Due to a bug in ModSecurity, in order to configure your blog(s) you must set up"
+  echo "SSH port fowarding in your SSH client for port 2368 (first blog), 2369 (second blog), etc."
+  echo "Then browse to http://localhost:2368/ghost, http://localhost:2369/ghost, etc."
+  echo "to configure your blog(s) and create an admin user. Choose a very secure password."
+  echo "Ref: https://github.com/hwdsl2/setup-ghost-blog/issues/1"
+fi
+
 echo
 echo "To restart Ghost: su - $ghost_user -s /bin/bash -c 'forever stopall; ./starter.sh'"
 echo "To restart Nginx: service nginx restart"

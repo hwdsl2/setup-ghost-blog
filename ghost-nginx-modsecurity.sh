@@ -489,7 +489,7 @@ echo 'Setup is complete. Your new blog is now ready for use!'
 echo
 echo "Ghost blog was installed in: /var/www/${BLOG_FQDN}"
 echo "ModSecurity and Nginx config files: /opt/nginx/conf"
-echo "Nginx access and error logs: /opt/nginx/logs"
+echo "Nginx web server logs: /opt/nginx/logs"
 echo
 echo "[Next Steps]"
 echo
@@ -500,25 +500,25 @@ if [ "$ghost_num" = "1" ]; then
   echo "Browse to http://${BLOG_FQDN}/ghost (or http://localhost:${ghost_port}/ghost via SSH port forwarding)"
   echo "to configure your blog and create an admin user. Choose a very secure password."
 else
-  echo "IMPORTANT: Due to a bug in ModSecurity, in order to configure your blog(s) you must set up"
-  echo "SSH port fowarding in your SSH client for port 2368 (first blog), 2369 (second blog), etc."
-  echo "Then browse to http://localhost:2368/ghost, http://localhost:2369/ghost, etc."
-  echo "to configure your blog(s) and create an admin user. Choose a very secure password."
-  echo "Ref: https://github.com/hwdsl2/setup-ghost-blog/issues/1"
+  echo "IMPORTANT NOTES:"
+  echo "To work around a bug in ModSecurity, you must manage your blog(s) via SSH port forwarding."
+  echo "First, configure your SSH client to forward port 2368 (first blog), 2369 (second blog), etc."
+  echo "Then open your browser and visit e.g. http://localhost:2368/ghost for instructions."
+  echo "Reference: https://github.com/hwdsl2/setup-ghost-blog/issues/1"
 fi
 
 echo
-echo "To restart Ghost: su - $ghost_user -s /bin/bash -c 'forever stopall; ./starter.sh'"
+echo "To restart Ghost: su - ${ghost_user} -s /bin/bash -c 'forever stopall; ./starter.sh'"
 echo "To restart Nginx: service nginx restart"
 echo
 echo "[Optional] Follow additional instructions at the link below to:"
 echo "https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/"
 echo
-echo "1. Set Up HTTPS for Your Blog"
-echo "2. Sitemap, Robots.txt and Extras"
-echo "3. Setting Up E-Mail on Ghost"
+echo "1. Set up HTTPS for your blog"
+echo "2. Sitemap, robots.txt and extras"
+echo "3. Setting up e-mail on Ghost"
 echo
-echo "Questions? See official guide: http://support.ghost.org Slack chat: https://ghost.org/slack/"
+echo "Questions? See official guide: http://support.ghost.org, Real-time chat: https://ghost.org/slack"
 echo
 echo "============================================================================================="
 echo

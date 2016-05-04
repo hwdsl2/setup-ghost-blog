@@ -6,14 +6,14 @@
 
 Ghost 博客是一个简约和现代的<a href="https://ghost.org/vs/wordpress/" target="_blank"> WordPress 替代品</a>。它设计精美，使用方便，完全开源，并且对所有人都是免费的。
 
-**新特性：** 现在你可以安装 **最多十个** Ghost 博客在同一台服务器上。只需再次运行脚本，并指定另外的完整域名作为参数。
+**新特性：** 现在你可以安装 **最多十个** 博客在同一台服务器上。只需再次运行脚本，并指定新的完整域名作为参数。
 
 #### <a href="https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/" target="_blank">详细的教程请参见我的博客文章</a>
 
 ## 系统要求
 
 一个专用服务器或虚拟专用服务器 (VPS)，\*全新安装\* 以下操作系统：   
-&nbsp;(注: 需要至少 512 MB 内存)   
+&nbsp;(注: 至少 512 MB 内存是必须的)   
 - Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise)
 - Debian 8 (Jessie)
 
@@ -37,7 +37,7 @@ wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-naxsi.sh 
 sudo bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 ```
 
-注： 请把上面的 `BLOG_FULL_DOMAIN_NAME` 替换为你的博客的完整域名。
+注： 请将上面的 `BLOG_FULL_DOMAIN_NAME` 替换为你的博客的完整域名。
 
 ## 版权与许可
 

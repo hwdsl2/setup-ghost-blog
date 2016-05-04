@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Use this automated bash script to install the latest Ghost blog on Ubuntu or Debian,
+# Use this automated bash script to install Ghost blog on Ubuntu or Debian,
 # with Nginx (as a reverse proxy) and Naxsi web application firewall.
 #
 # It should only be used on a Virtual Private Server (VPS) or dedicated server,
@@ -165,9 +165,13 @@ case $response in
 esac
 
 BLOG_FQDN=$1
+
+/bin/rm -f /tmp/BLOG_VARS
 echo "BLOG_FQDN='$1'" > /tmp/BLOG_VARS
 echo "ghost_num='${ghost_num}'" >> /tmp/BLOG_VARS
 echo "ghost_port='${ghost_port}'" >> /tmp/BLOG_VARS
+
+[ ! -f /tmp/BLOG_VARS ] && exit 1
 
 # Create and change to working dir
 mkdir -p /opt/src
@@ -239,19 +243,17 @@ if [ ! -f /proc/user_beancounters ]; then
   chmod 600 "$swap_tmp" && mkswap "$swap_tmp" >/dev/null && swapon "$swap_tmp"
 fi
 
-# Switch to user "ghost".
-# REMOVE <<'SU_END' if running script manually.
-su - "$ghost_user" -s /bin/bash <<'SU_END'
+# Switch to Ghost blog user. We use a "here document" to run multiple commands as this user.
 
-# Commands below will be run as user "ghost".
+su - "$ghost_user" -s /bin/bash <<'SU_END'
 
 # Retrieve variables from temp file:
 . /tmp/BLOG_VARS
 
-# Get the ghost blog source (latest version), unzip and install.
-wget -t 3 -T 30 -nv -O ghost-latest.zip https://ghost.org/zip/ghost-latest.zip
+# Get the Ghost blog source, unzip and install.
+wget -t 3 -T 30 -nv -O ghost-0.7.9.zip https://ghost.org/zip/ghost-0.7.9.zip
 [ "$?" != "0" ] && { echo "Cannot download Ghost blog source. Aborting."; exit 1; }
-unzip -o ghost-latest.zip && /bin/rm -f ghost-latest.zip
+unzip -o ghost-0.7.9.zip && /bin/rm -f ghost-0.7.9.zip
 npm install --production
 
 # Generate config file and make sure that Ghost uses your actual domain name
@@ -287,21 +289,13 @@ chmod +x starter.sh
 crontab -r 2>/dev/null
 crontab -l 2>/dev/null | { cat; echo "@reboot /var/www/${BLOG_FQDN}/starter.sh"; } | crontab -
 
-# SKIP this line if running script manually
 SU_END
-
-: '
-# Exit the shell so that you are root again.
-exit
-'
 
 # Remove temporary swap file
 [ -f "$swap_tmp" ] && swapoff "$swap_tmp" && /bin/rm -f "$swap_tmp"
 
 # Check if Ghost blog download was successful
 [ ! -f "/var/www/${BLOG_FQDN}/index.js" ] && exit 1
-
-# Commands below will be run as "root".
 
 # Create the logfile:
 if [ "$ghost_num" = "1" ]; then
@@ -451,7 +445,7 @@ else
   sed -i -e "/127\.0\.0\.1:2368/s/2368/${ghost_port}/" \
          -e "s/ghost_upstream/ghost_upstream${ghost_num}/" \
          -e "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" "nginx-blog${ghost_num}.conf"
-  sed -i "/include nginx-blog1\.conf/ainclude nginx-blog${ghost_num}.conf;" nginx.conf
+  sed -i "/include nginx-blog1\.conf/a\    include nginx-blog${ghost_num}.conf;" nginx.conf
 fi
 
 # Check the validity of the nginx.conf file:
@@ -468,7 +462,7 @@ service nginx restart
 # Retrieve server IP for display below
 PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
 
-# Remove temporary files
+# Remove temporary file
 /bin/rm -f /tmp/BLOG_VARS
 
 echo
@@ -490,7 +484,7 @@ echo
 echo "To restart Ghost: su - ${ghost_user} -s /bin/bash -c 'forever stopall; ./starter.sh'"
 echo "To restart Nginx: service nginx restart"
 echo
-echo "[Optional] Follow additional instructions at the link below to:"
+echo "(Optional) Follow additional instructions at the link below to:"
 echo "https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/"
 echo
 echo "1. Set up HTTPS for your blog"

@@ -381,6 +381,7 @@ Include "modsecurity_crs_41_xss_attacks.conf"
 SecRuleUpdateTargetById 981172 !REQUEST_COOKIES:'/^PRUM_EPISODES/'
 SecRuleUpdateTargetById 981172 !REQUEST_COOKIES:'/^CFGLOBALS/'
 SecRuleUpdateTargetById 981231 !REQUEST_COOKIES:'/^CFGLOBALS/'
+SecRuleUpdateTargetById 981243 !REQUEST_COOKIES:'/^CFGLOBALS/'
 SecRuleUpdateTargetById 981245 !REQUEST_COOKIES:'/^CFGLOBALS/'
 SecRuleUpdateTargetById 973338 !ARGS:token
 EOF

@@ -1,4 +1,4 @@
-﻿# Ghost 博客一键安装脚本
+﻿# Ghost 博客平台一键安装脚本
 
 *其他语言版本: [English](README.md), [简体中文](README-zh.md).*
 
@@ -19,7 +19,7 @@ Ghost 博客是一个简约和现代的<a href="https://ghost.org/vs/wordpress/"
 
 :warning: **不要** 在你的 PC 或者 Mac 上运行这些脚本！它们只能用在服务器上！
 
-## 安装说明
+## 如何安装
 
 首先，更新你的系统： 运行 `apt-get update && apt-get dist-upgrade` 并重启。这一步是可选的，但推荐。
 
@@ -39,7 +39,7 @@ sudo bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 
 注： 请将上面的 `BLOG_FULL_DOMAIN_NAME` 替换为你的博客的完整域名。
 
-## 版权与许可
+## 授权协议
 
 版权所有 (C) 2015-2016&nbsp;Lin Song&nbsp;&nbsp;&nbsp;<a href="https://www.linkedin.com/in/linsongui" target="_blank"><img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_viewmy_160x25.png" width="160" height="25" border="0" alt="View my profile on LinkedIn"></a>    
 基于 <a href="https://blog.igbuend.com/dude-looks-like-a-ghost/" target="_blank">Herman Stevens 的工作</a> （版权所有 2013）

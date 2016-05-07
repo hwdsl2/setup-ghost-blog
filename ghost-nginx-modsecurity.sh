@@ -494,11 +494,13 @@ if [ "$ghost_num" = "1" ]; then
   echo "Browse to http://${BLOG_FQDN}/ghost (or http://localhost:${ghost_port}/ghost via SSH port forwarding)"
   echo "to configure your blog and create an admin user. Choose a very secure password."
 else
-  echo "IMPORTANT NOTES:"
-  echo "To work around a bug in ModSecurity [1], you must manage your blog(s) via SSH port forwarding."
-  echo "First, configure your SSH client to forward port 2368 (first blog), 2369 (second blog), etc."
-  echo "Then browse to http://localhost:2368/ghost, http://localhost:2369/ghost, etc. for instructions."
-  echo "[1] https://github.com/hwdsl2/setup-ghost-blog/issues/1"
+  echo "-------------------------------"
+  echo " Important Notes - Please Read "
+  echo "-------------------------------"
+  echo "To work around a bug in ModSecurity, you must configure your blog(s) via SSH port forwarding."
+  echo "First, set up your SSH client to forward port 2368 (first blog), 2369 (second blog), etc."
+  echo "Then browse to http://localhost:2368/ghost (or 2369, etc.) to configure your blog(s)."
+  echo "Reference: https://github.com/hwdsl2/setup-ghost-blog/issues/1"
 fi
 
 echo

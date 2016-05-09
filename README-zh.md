@@ -12,10 +12,11 @@ Ghost 博客是一个简约和现代的<a href="https://ghost.org/vs/wordpress/"
 
 ## 系统要求
 
-一个专用服务器或虚拟专用服务器 (VPS)，\*全新安装\* 以下操作系统：   
-&nbsp;(注: 至少 512 MB 内存是必须的)   
+一个专用服务器或虚拟专用服务器 (VPS)，\*全新安装\* ：   
 - Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise)
 - Debian 8 (Jessie)
+
+注： 至少 512 MB 内存是必须的。
 
 :warning: **不要** 在你的 PC 或者 Mac 上运行这些脚本！它们只能用在服务器上！
 

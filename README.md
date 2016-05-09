@@ -13,9 +13,10 @@ Ghost is a simple, modern <a href="https://ghost.org/vs/wordpress/" target="_bla
 ## Requirements
 
 A dedicated server or Virtual Private Server (VPS), with **freshly installed**:   
-&nbsp;(Note: A minimum of 512 MB RAM is required)   
 - Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise)
 - Debian 8 (Jessie)
+
+Note: A minimum of 512 MB RAM is required.
 
 :warning: **DO NOT** run these scripts on your PC or Mac! They should only be used on a server!
 
@@ -37,7 +38,7 @@ wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-naxsi.sh 
 sudo bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 ```
 
-Note: You must replace `BLOG_FULL_DOMAIN_NAME` above with your actual domain name.
+Note: Replace `BLOG_FULL_DOMAIN_NAME` above with your actual domain name.
 
 ## License
 

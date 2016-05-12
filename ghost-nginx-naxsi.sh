@@ -82,6 +82,7 @@ ghost_port=2368
 if id -u ghost >/dev/null 2>&1; then
   echo 'It looks like this server already has Ghost blog installed! '
   if [ -d "/var/www/$1" ]; then
+    echo
     echo "To install additional blogs, you must use a new full domain name."
     exit 1
   fi
@@ -243,7 +244,8 @@ if [ ! -f /proc/user_beancounters ]; then
   chmod 600 "$swap_tmp" && mkswap "$swap_tmp" >/dev/null && swapon "$swap_tmp"
 fi
 
-# Switch to Ghost blog user. We use a "here document" to run multiple commands as this user.
+# Switch to Ghost blog user.
+# We use a "here document" to run multiple commands as this user.
 
 su - "$ghost_user" -s /bin/bash <<'SU_END'
 
@@ -466,9 +468,9 @@ PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
 /bin/rm -f /tmp/BLOG_VARS
 
 echo
-echo "============================================================================================="
+echo "==============================================================="
 echo
-echo 'Setup is complete. Your new blog is now ready for use!'
+echo 'Setup is complete. Your new Ghost blog is now ready for use!'
 echo
 echo "Ghost blog was installed in: /var/www/${BLOG_FQDN}"
 echo "Naxsi and Nginx config files: /etc/nginx and /opt/nginx/conf"
@@ -478,23 +480,24 @@ echo "[Next Steps]"
 echo
 echo "You must set up DNS (A Record) to point ${BLOG_FQDN} to this server's IP ${PUBLIC_IP}"
 echo
-echo "Browse to http://${BLOG_FQDN}/ghost (or http://localhost:${ghost_port}/ghost via SSH port forwarding)"
-echo "to configure your blog and create an admin user. Choose a very secure password."
+echo "Browse to http://${BLOG_FQDN}/ghost (or, set up SSH port forwarding and browse to"
+echo "http://localhost:${ghost_port}/ghost) to configure your blog. Choose a strong password."
 echo
 echo "To restart Ghost: su - ${ghost_user} -s /bin/bash -c 'forever stopall; ./starter.sh'"
 echo "To restart Nginx: service nginx restart"
 echo
-echo "(Optional) Follow additional instructions at the link below to:"
+echo "(Optional) Follow additional steps at the link below to:"
 echo "https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/"
 echo
 echo "1. Set up HTTPS for your blog"
 echo "2. Sitemap, robots.txt and extras"
 echo "3. Setting up e-mail on Ghost"
 echo
-echo "Questions? See official guide: http://support.ghost.org, Real-time chat: https://ghost.org/slack"
-echo "Naxsi documentation: https://github.com/nbs-system/naxsi/wiki"
+echo "Ghost support: http://support.ghost.org"
+echo "Real-time chat: https://ghost.org/slack"
+echo "Naxsi docs: https://github.com/nbs-system/naxsi/wiki"
 echo
-echo "============================================================================================="
+echo "==============================================================="
 echo
 
 exit 0

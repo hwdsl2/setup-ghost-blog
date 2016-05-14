@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Use this automated bash script to install the latest Ghost blog on Ubuntu or Debian,
+# Use this automated bash script to install Ghost blog on Ubuntu or Debian,
 # with Nginx (as a reverse proxy) and ModSecurity web application firewall.
 #
 # It should only be used on a Virtual Private Server (VPS) or dedicated server,
@@ -82,6 +82,7 @@ ghost_port=2368
 if id -u ghost >/dev/null 2>&1; then
   echo 'It looks like this server already has Ghost blog installed! '
   if [ -d "/var/www/$1" ]; then
+    echo
     echo "To install additional blogs, you must use a new full domain name."
     exit 1
   fi
@@ -165,9 +166,13 @@ case $response in
 esac
 
 BLOG_FQDN=$1
+
+/bin/rm -f /tmp/BLOG_VARS
 echo "BLOG_FQDN='$1'" > /tmp/BLOG_VARS
 echo "ghost_num='${ghost_num}'" >> /tmp/BLOG_VARS
 echo "ghost_port='${ghost_port}'" >> /tmp/BLOG_VARS
+
+[ ! -f /tmp/BLOG_VARS ] && exit 1
 
 # Create and change to working dir
 mkdir -p /opt/src
@@ -240,19 +245,18 @@ if [ ! -f /proc/user_beancounters ]; then
   chmod 600 "$swap_tmp" && mkswap "$swap_tmp" >/dev/null && swapon "$swap_tmp"
 fi
 
-# Switch to user "ghost".
-# REMOVE <<'SU_END' if running script manually.
-su - "$ghost_user" -s /bin/bash <<'SU_END'
+# Switch to Ghost blog user.
+# We use a "here document" to run multiple commands as this user.
 
-# Commands below will be run as user "ghost".
+su - "$ghost_user" -s /bin/bash <<'SU_END'
 
 # Retrieve variables from temp file:
 . /tmp/BLOG_VARS
 
-# Get the ghost blog source (latest version), unzip and install.
-wget -t 3 -T 30 -nv -O ghost-latest.zip https://ghost.org/zip/ghost-latest.zip
+# Get the Ghost blog source, unzip and install.
+wget -t 3 -T 30 -nv -O ghost-0.7.9.zip https://ghost.org/zip/ghost-0.7.9.zip
 [ "$?" != "0" ] && { echo "Cannot download Ghost blog source. Aborting."; exit 1; }
-unzip -o ghost-latest.zip && /bin/rm -f ghost-latest.zip
+unzip -o ghost-0.7.9.zip && /bin/rm -f ghost-0.7.9.zip
 npm install --production
 
 # Generate config file and make sure that Ghost uses your actual domain name
@@ -288,21 +292,13 @@ chmod +x starter.sh
 crontab -r 2>/dev/null
 crontab -l 2>/dev/null | { cat; echo "@reboot /var/www/${BLOG_FQDN}/starter.sh"; } | crontab -
 
-# SKIP this line if running script manually
 SU_END
-
-: '
-# Exit the shell so that you are root again.
-exit
-'
 
 # Remove temporary swap file
 [ -f "$swap_tmp" ] && swapoff "$swap_tmp" && /bin/rm -f "$swap_tmp"
 
 # Check if Ghost blog download was successful
 [ ! -f "/var/www/${BLOG_FQDN}/index.js" ] && exit 1
-
-# Commands below will be run as "root".
 
 # Create the logfile:
 if [ "$ghost_num" = "1" ]; then
@@ -316,8 +312,7 @@ fi
 if [ "$ghost_num" = "1" ] || [ ! -f /opt/nginx/sbin/nginx ]; then
 
 # Download and compile ModSecurity:
-# We use ModSecurity's sources from "nginx_refactoring" branch for improved stability.
-
+# We use ModSecurity's "nginx_refactoring" branch for improved stability.
 cd /opt/src || exit 1
 wget -t 3 -T 30 -nv -O nginx_refactoring.zip https://github.com/SpiderLabs/ModSecurity/archive/nginx_refactoring.zip
 [ "$?" != "0" ] && { echo "Cannot download ModSecurity source. Aborting."; exit 1; }
@@ -381,6 +376,7 @@ Include "modsecurity_crs_41_xss_attacks.conf"
 SecRuleUpdateTargetById 981172 !REQUEST_COOKIES:'/^PRUM_EPISODES/'
 SecRuleUpdateTargetById 981172 !REQUEST_COOKIES:'/^CFGLOBALS/'
 SecRuleUpdateTargetById 981231 !REQUEST_COOKIES:'/^CFGLOBALS/'
+SecRuleUpdateTargetById 981243 !REQUEST_COOKIES:'/^CFGLOBALS/'
 SecRuleUpdateTargetById 981245 !REQUEST_COOKIES:'/^CFGLOBALS/'
 SecRuleUpdateTargetById 973338 !ARGS:token
 EOF
@@ -462,7 +458,7 @@ else
   sed -i -e "/127\.0\.0\.1:2368/s/2368/${ghost_port}/" \
          -e "s/ghost_upstream/ghost_upstream${ghost_num}/" \
          -e "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" "nginx-blog${ghost_num}.conf"
-  sed -i "/include nginx-blog1\.conf/ainclude nginx-blog${ghost_num}.conf;" nginx.conf
+  sed -i "/include nginx-blog1\.conf/a\    include nginx-blog${ghost_num}.conf;" nginx.conf
 fi
 
 # Check the validity of the nginx.conf file:
@@ -479,38 +475,51 @@ service nginx restart
 # Retrieve server IP for display below
 PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
 
-# Remove temporary files
+# Remove temporary file
 /bin/rm -f /tmp/BLOG_VARS
 
 echo
-echo "============================================================================================="
+echo "==============================================================="
 echo
-echo 'Setup is complete. Your new blog is now ready for use!'
+echo 'Setup is complete. Your new Ghost blog is now ready for use!'
 echo
 echo "Ghost blog was installed in: /var/www/${BLOG_FQDN}"
 echo "ModSecurity and Nginx config files: /opt/nginx/conf"
-echo "Nginx access and error logs: /opt/nginx/logs"
+echo "Nginx web server logs: /opt/nginx/logs"
 echo
 echo "[Next Steps]"
 echo
 echo "You must set up DNS (A Record) to point ${BLOG_FQDN} to this server's IP ${PUBLIC_IP}"
 echo
-echo "Browse to http://${BLOG_FQDN}/ghost (or http://localhost:${ghost_port}/ghost via SSH port forwarding)"
-echo "to configure your blog and create an admin user. Choose a very secure password."
+
+if [ "$ghost_num" = "1" ]; then
+  echo "Browse to http://${BLOG_FQDN}/ghost (or, set up SSH port forwarding and browse to"
+  echo "http://localhost:${ghost_port}/ghost) to configure your blog. Choose a strong password."
+else
+  echo "-------------------------------"
+  echo " Important Notes - Please Read "
+  echo "-------------------------------"
+  echo "To work around a ModSecurity bug, you must manage your blogs via SSH port forwarding."
+  echo "First, set up your SSH client to forward port 2368 (first blog), 2369 (second blog), etc."
+  echo "Then browse to http://localhost:2368/ghost (or 2369, etc.) to configure your blogs."
+  echo "Ref: https://github.com/hwdsl2/setup-ghost-blog/issues/1"
+fi
+
 echo
-echo "To restart Ghost: su - $ghost_user -s /bin/bash -c 'forever stopall; ./starter.sh'"
+echo "To restart Ghost: su - ${ghost_user} -s /bin/bash -c 'forever stopall; ./starter.sh'"
 echo "To restart Nginx: service nginx restart"
 echo
-echo "[Optional] Follow additional instructions at the link below to:"
+echo "(Optional) Follow additional steps at the link below to:"
 echo "https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/"
 echo
-echo "1. Set Up HTTPS for Your Blog"
-echo "2. Sitemap, Robots.txt and Extras"
-echo "3. Setting Up E-Mail on Ghost"
+echo "1. Set up HTTPS for your blog"
+echo "2. Sitemap, robots.txt and extras"
+echo "3. Setting up e-mail on Ghost"
 echo
-echo "Questions? See official guide: http://support.ghost.org Slack chat: https://ghost.org/slack/"
+echo "Ghost support: http://support.ghost.org"
+echo "Real-time chat: https://ghost.org/slack"
 echo
-echo "============================================================================================="
+echo "==============================================================="
 echo
 
 exit 0

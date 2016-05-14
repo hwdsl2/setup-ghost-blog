@@ -6,16 +6,17 @@ Scripts to install your own <a href="https://github.com/TryGhost/Ghost" target="
 
 Ghost is a simple, modern <a href="https://ghost.org/vs/wordpress/" target="_blank">WordPress alternative</a> which puts the excitement back into blogging. It's beautifully designed, easy to use, completely open source, and free for everyone.
 
-**NEW:** You can now install **up to 10** Ghost blogs on the same server. Just run the script again with another full domain name.
+**NEW:** You can now install **up to 10** blogs on the same server. Just run the script again with a new full domain name.
 
 #### <a href="https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/" target="_blank">Link to my blog article with detailed information</a>   
 
 ## Requirements
 
 A dedicated server or Virtual Private Server (VPS), with **freshly installed**:   
-&nbsp;(Note: A minimum of 512 MB RAM is required)   
 - Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise)
 - Debian 8 (Jessie)
+
+Note: A minimum of 512 MB RAM is required.
 
 :warning: **DO NOT** run these scripts on your PC or Mac! They should only be used on a server!
 
@@ -37,7 +38,7 @@ wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-naxsi.sh 
 sudo bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 ```
 
-Note: You must replace `BLOG_FULL_DOMAIN_NAME` above with your actual domain name.
+Note: Replace `BLOG_FULL_DOMAIN_NAME` above with your actual domain name.
 
 ## License
 

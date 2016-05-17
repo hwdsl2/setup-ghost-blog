@@ -180,10 +180,10 @@ cd /opt/src || exit 1
 
 # Update package index
 export DEBIAN_FRONTEND=noninteractive
-apt-get -y update
+apt-get -yqq update
 
 # We need some more software
-apt-get -y install unzip fail2ban iptables-persistent \
+apt-get -yqq install unzip fail2ban iptables-persistent \
   build-essential apache2-dev libxml2-dev wget curl \
   libcurl4-openssl-dev libpcre3-dev libssl-dev \
   libtool autoconf
@@ -221,7 +221,7 @@ service fail2ban start
 # Ref: https://github.com/nodesource/distributions#debinstall
 if [ "$ghost_num" = "1" ] || [ ! -f /usr/bin/node ]; then
   curl -sL https://deb.nodesource.com/setup_0.12 | bash -
-  apt-get -y install nodejs=0.12\*
+  apt-get -yqq install nodejs=0.12\*
 fi
 
 # To keep your Ghost blog running, install "forever".
@@ -256,7 +256,7 @@ su - "$ghost_user" -s /bin/bash <<'SU_END'
 # Get the Ghost blog source, unzip and install.
 wget -t 3 -T 30 -nv -O ghost-0.7.9.zip https://ghost.org/zip/ghost-0.7.9.zip
 [ "$?" != "0" ] && { echo "Cannot download Ghost blog source. Aborting."; exit 1; }
-unzip -o ghost-0.7.9.zip && /bin/rm -f ghost-0.7.9.zip
+unzip -o -qq ghost-0.7.9.zip && /bin/rm -f ghost-0.7.9.zip
 npm install --production
 
 # Generate config file and make sure that Ghost uses your actual domain name
@@ -316,24 +316,24 @@ if [ "$ghost_num" = "1" ] || [ ! -f /opt/nginx/sbin/nginx ]; then
 cd /opt/src || exit 1
 wget -t 3 -T 30 -nv -O nginx_refactoring.zip https://github.com/SpiderLabs/ModSecurity/archive/nginx_refactoring.zip
 [ "$?" != "0" ] && { echo "Cannot download ModSecurity source. Aborting."; exit 1; }
-unzip -o nginx_refactoring.zip && /bin/rm -f nginx_refactoring.zip
+unzip -o -qq nginx_refactoring.zip && /bin/rm -f nginx_refactoring.zip
 cd ModSecurity-nginx_refactoring || { echo "Cannot enter ModSecurity source dir. Aborting."; exit 1; }
 ./autogen.sh
 ./configure --enable-standalone-module --disable-mlogc
-make
+make -s
 
 # Next we create a user for nginx:
 adduser --system --no-create-home --disabled-login --disabled-password --group nginx
 
 # Download and compile Nginx:
 cd /opt/src || exit 1
-wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.10.0.tar.gz | tar xvz
+wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.10.0.tar.gz | tar xz
 [ ! -d nginx-1.10.0 ] && { echo "Cannot download Nginx source. Aborting."; exit 1; }
 cd nginx-1.10.0 || exit 1
 ./configure --add-module=../ModSecurity-nginx_refactoring/nginx/modsecurity \
   --prefix=/opt/nginx --user=nginx --group=nginx \
   --with-http_ssl_module --with-http_v2_module --with-http_realip_module
-make && make install
+make -s && make -s install
 
 # Copy the ModSecurity configuration file to the Nginx directory:
 cd /opt/nginx/conf || exit 1
@@ -341,10 +341,12 @@ cd /opt/nginx/conf || exit 1
 /bin/cp -f /opt/src/ModSecurity-nginx_refactoring/unicode.mapping ./
 
 # We need some more rules for ModSecurity:
-wget -t 3 -T 30 -nv -O modsecurity_crs_41_xss_attacks.conf https://raw.githubusercontent.com/SpiderLabs/owasp-modsecurity-crs/master/base_rules/modsecurity_crs_41_xss_attacks.conf
-[ "$?" != "0" ] && { echo "Cannot download modsecurity_crs_41_xss_attacks.conf. Aborting."; exit 1; }
-wget -t 3 -T 30 -nv -O modsecurity_crs_41_sql_injection_attacks.conf https://raw.githubusercontent.com/SpiderLabs/owasp-modsecurity-crs/master/base_rules/modsecurity_crs_41_sql_injection_attacks.conf
-[ "$?" != "0" ] && { echo "Cannot download modsecurity_crs_41_sql_injection_attacks.conf. Aborting."; exit 1; }
+mod_conf1="modsecurity_crs_41_xss_attacks.conf"
+mod_conf2="modsecurity_crs_41_sql_injection_attacks.conf"
+wget -t 3 -T 30 -nv -O "$mod_conf1" "https://raw.githubusercontent.com/SpiderLabs/owasp-modsecurity-crs/master/base_rules/$mod_conf1"
+[ "$?" != "0" ] && { echo "Cannot download $mod_conf1. Aborting."; exit 1; }
+wget -t 3 -T 30 -nv -O "$mod_conf2" "https://raw.githubusercontent.com/SpiderLabs/owasp-modsecurity-crs/master/base_rules/$mod_conf2"
+[ "$?" != "0" ] && { echo "Cannot download $mod_conf2. Aborting."; exit 1; }
 
 # Disable the JSON parser due to issues (400 Bad Request) when updating a blog post.
 # Ref: https://github.com/SpiderLabs/ModSecurity/issues/939

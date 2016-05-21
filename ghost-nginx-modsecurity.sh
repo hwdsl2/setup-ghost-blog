@@ -137,20 +137,21 @@ fi
 
 clear
 
-echo 'Welcome! This script installs Ghost blog (https://ghost.org) on your server,'
-echo 'with Nginx (as a reverse proxy) and Modsecurity web application firewall.'
-echo
-echo 'The full domain name for your new blog is:'
-echo
-echo "$1"
-echo
-echo 'Please double check. This MUST be correct for it to work!'
-echo
-echo 'IMPORTANT NOTES:'
-echo 'This script should only be used on a Virtual Private Server (VPS) or dedicated server,'
-echo 'with *freshly installed* Ubuntu LTS or Debian 8.'
-echo '*DO NOT* run this script on your PC or Mac!'
-echo
+cat <<EOF
+Welcome! This script installs Ghost blog (https://ghost.org) on your server,
+with Nginx (as a reverse proxy) and Modsecurity web application firewall.
+
+The full domain name for your new blog is:
+
+$1
+
+Please double check. This MUST be correct for it to work!
+
+IMPORTANT: This script should only be used on a Virtual Private Server (VPS)
+ or dedicated server, with *freshly installed* Ubuntu LTS or Debian 8.
+ *DO NOT* run this script on your PC or Mac!
+
+EOF
 
 read -r -p "Confirm and proceed with the install? [y/N] " response
 case $response in
@@ -480,48 +481,59 @@ PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
 # Remove temporary file
 /bin/rm -f /tmp/BLOG_VARS
 
-echo
-echo "==============================================================="
-echo
-echo 'Setup is complete. Your new Ghost blog is now ready for use!'
-echo
-echo "Ghost blog was installed in: /var/www/${BLOG_FQDN}"
-echo "ModSecurity and Nginx config files: /opt/nginx/conf"
-echo "Nginx web server logs: /opt/nginx/logs"
-echo
-echo "[Next Steps]"
-echo
-echo "You must set up DNS (A Record) to point ${BLOG_FQDN} to this server's IP ${PUBLIC_IP}"
-echo
+cat <<EOF
+
+===============================================================
+
+Setup is complete. Your new Ghost blog is now ready for use!
+
+Ghost blog was installed in: /var/www/${BLOG_FQDN}
+ModSecurity and Nginx config files: /opt/nginx/conf
+Nginx web server logs: /opt/nginx/logs
+
+[Next Steps]
+
+You must set up DNS (A Record) to point ${BLOG_FQDN} to this server's IP ${PUBLIC_IP}
+
+EOF
 
 if [ "$ghost_num" = "1" ]; then
-  echo "Browse to http://${BLOG_FQDN}/ghost (or, set up SSH port forwarding and browse to"
-  echo "http://localhost:${ghost_port}/ghost) to configure your blog. Choose a strong password."
+
+cat <<EOF
+Browse to http://${BLOG_FQDN}/ghost (or, set up SSH port forwarding and browse to
+http://localhost:${ghost_port}/ghost) to configure your blog. Choose a strong password.
+EOF
+
 else
-  echo "-------------------------------"
-  echo " Important Notes - Please Read "
-  echo "-------------------------------"
-  echo "To work around a ModSecurity bug, you must manage your blogs via SSH port forwarding."
-  echo "First, set up your SSH client to forward port 2368 (first blog), 2369 (second blog), etc."
-  echo "Then browse to http://localhost:2368/ghost (or 2369, etc.) to configure your blogs."
-  echo "Ref: https://github.com/hwdsl2/setup-ghost-blog/issues/1"
+
+cat <<'EOF'
+[IMPORTANT NOTES]
+
+To work around a ModSecurity bug, you must manage your blogs via SSH port forwarding.
+First, set up your SSH client to forward port 2368 (first blog), 2369 (second blog), etc.
+Then browse to http://localhost:2368/ghost (or 2369, etc.) to configure your blogs.
+Reference: https://github.com/hwdsl2/setup-ghost-blog/issues/1
+EOF
+
 fi
 
-echo
-echo "To restart Ghost: su - ${ghost_user} -s /bin/bash -c 'forever stopall; ./starter.sh'"
-echo "To restart Nginx: service nginx restart"
-echo
-echo "(Optional) Follow additional steps at the link below to:"
-echo "https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/"
-echo
-echo "1. Set up HTTPS for your blog"
-echo "2. Sitemap, robots.txt and extras"
-echo "3. Setting up e-mail on Ghost"
-echo
-echo "Ghost support: http://support.ghost.org"
-echo "Real-time chat: https://ghost.org/slack"
-echo
-echo "==============================================================="
-echo
+cat <<EOF
+
+To restart Ghost: su - ${ghost_user} -s /bin/bash -c 'forever stopall; ./starter.sh'
+To restart Nginx: service nginx restart
+
+(Optional) Follow additional steps at the link below to:
+https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/
+
+1. Set up HTTPS for your blog
+2. Sitemap, robots.txt and extras
+3. Setting up e-mail on Ghost
+
+Ghost support: http://support.ghost.org
+Real-time chat: https://ghost.org/slack
+
+===============================================================
+
+EOF
 
 exit 0

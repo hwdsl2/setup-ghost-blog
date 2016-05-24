@@ -255,9 +255,9 @@ su - "$ghost_user" -s /bin/bash <<'SU_END'
 . /tmp/BLOG_VARS
 
 # Get the Ghost blog source, unzip and install.
-wget -t 3 -T 30 -nv -O ghost-0.7.9.zip https://ghost.org/zip/ghost-0.7.9.zip
+wget -t 3 -T 30 -nv -O ghost-0.8.0.zip https://ghost.org/zip/ghost-0.8.0.zip
 [ "$?" != "0" ] && { echo "Cannot download Ghost blog source. Aborting."; exit 1; }
-unzip -o -qq ghost-0.7.9.zip && /bin/rm -f ghost-0.7.9.zip
+unzip -o -qq ghost-0.8.0.zip && /bin/rm -f ghost-0.8.0.zip
 npm install --production
 
 # Generate config file and make sure that Ghost uses your actual domain name

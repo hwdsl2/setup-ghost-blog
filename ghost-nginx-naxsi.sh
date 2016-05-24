@@ -470,7 +470,7 @@ PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
 
 cat <<EOF
 
-===============================================================
+===================================================================
 
 Setup is complete. Your new Ghost blog is now ready for use!
 
@@ -480,13 +480,18 @@ Nginx web server logs: /opt/nginx/logs
 
 [Next Steps]
 
-You must set up DNS (A Record) to point ${BLOG_FQDN} to this server's IP ${PUBLIC_IP}
+You must set up DNS (A Record) to point ${BLOG_FQDN}
+to this server's IP ${PUBLIC_IP}
 
-Browse to http://${BLOG_FQDN}/ghost (or, set up SSH port forwarding and browse to
-http://localhost:${ghost_port}/ghost) to configure your blog. Choose a strong password.
+Browse to http://${BLOG_FQDN}/ghost (or set up SSH port forwarding
+and browse to http://localhost:${ghost_port}/ghost) to complete
+the initial configuration of your blog. Choose a strong password.
 
-To restart Ghost: su - ${ghost_user} -s /bin/bash -c 'forever stopall; ./starter.sh'
-To restart Nginx: service nginx restart
+To restart Ghost blog:
+su - ${ghost_user} -s /bin/bash -c 'forever stopall; ./starter.sh'
+
+To restart Nginx web server:
+service nginx restart
 
 (Optional) Follow additional steps at the link below to:
 https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/
@@ -499,7 +504,7 @@ Ghost support: http://support.ghost.org
 Real-time chat: https://ghost.org/slack
 Naxsi docs: https://github.com/nbs-system/naxsi/wiki
 
-===============================================================
+===================================================================
 
 EOF
 

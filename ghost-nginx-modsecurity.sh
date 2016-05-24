@@ -483,7 +483,7 @@ PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
 
 cat <<EOF
 
-===============================================================
+===================================================================
 
 Setup is complete. Your new Ghost blog is now ready for use!
 
@@ -493,34 +493,40 @@ Nginx web server logs: /opt/nginx/logs
 
 [Next Steps]
 
-You must set up DNS (A Record) to point ${BLOG_FQDN} to this server's IP ${PUBLIC_IP}
+You must set up DNS (A Record) to point ${BLOG_FQDN}
+to this server's IP ${PUBLIC_IP}
 
 EOF
 
 if [ "$ghost_num" = "1" ]; then
 
 cat <<EOF
-Browse to http://${BLOG_FQDN}/ghost (or, set up SSH port forwarding and browse to
-http://localhost:${ghost_port}/ghost) to configure your blog. Choose a strong password.
+Browse to http://${BLOG_FQDN}/ghost (or set up SSH port forwarding
+and browse to http://localhost:${ghost_port}/ghost) to complete
+the initial configuration of your blog. Choose a strong password.
 EOF
 
 else
 
 cat <<'EOF'
-[IMPORTANT NOTES]
+[Important Notes]
 
-To work around a ModSecurity bug, you must manage your blogs via SSH port forwarding.
-First, set up your SSH client to forward port 2368 (first blog), 2369 (second blog), etc.
-Then browse to http://localhost:2368/ghost (or 2369, etc.) to configure your blogs.
-Reference: https://github.com/hwdsl2/setup-ghost-blog/issues/1
+To work around a ModSecurity bug which only affects multiple blogs,
+from now on you must configure your blogs via SSH port forwarding.
+First, set up your SSH client to forward port 2368 (first blog),
+2369 (second blog), etc. Then browse to http://localhost:2368/ghost
+(or 2369, etc.) to configure your blogs.
 EOF
 
 fi
 
 cat <<EOF
 
-To restart Ghost: su - ${ghost_user} -s /bin/bash -c 'forever stopall; ./starter.sh'
-To restart Nginx: service nginx restart
+To restart Ghost blog:
+su - ${ghost_user} -s /bin/bash -c 'forever stopall; ./starter.sh'
+
+To restart Nginx web server:
+service nginx restart
 
 (Optional) Follow additional steps at the link below to:
 https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/
@@ -532,7 +538,7 @@ https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/
 Ghost support: http://support.ghost.org
 Real-time chat: https://ghost.org/slack
 
-===============================================================
+===================================================================
 
 EOF
 

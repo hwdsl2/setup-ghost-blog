@@ -328,9 +328,9 @@ adduser --system --no-create-home --disabled-login --disabled-password --group n
 
 # Download and compile Nginx:
 cd /opt/src || exit 1
-wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.10.0.tar.gz | tar xz
-[ ! -d nginx-1.10.0 ] && { echo "Cannot download Nginx source. Aborting."; exit 1; }
-cd nginx-1.10.0 || exit 1
+wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.10.1.tar.gz | tar xz
+[ ! -d nginx-1.10.1 ] && { echo "Cannot download Nginx source. Aborting."; exit 1; }
+cd nginx-1.10.1 || exit 1
 ./configure --add-module=../ModSecurity-nginx_refactoring/nginx/modsecurity \
   --prefix=/opt/nginx --user=nginx --group=nginx \
   --with-http_ssl_module --with-http_v2_module --with-http_realip_module

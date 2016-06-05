@@ -181,10 +181,10 @@ cd /opt/src || exit 1
 
 # Update package index
 export DEBIAN_FRONTEND=noninteractive
-apt-get -yqq update
+apt-get -yq update
 
 # We need some more software
-apt-get -yqq install unzip fail2ban iptables-persistent \
+apt-get -yq install unzip fail2ban iptables-persistent \
   build-essential apache2-dev libxml2-dev wget curl \
   libcurl4-openssl-dev libpcre3-dev libssl-dev
 
@@ -221,7 +221,7 @@ service fail2ban start
 # Ref: https://github.com/nodesource/distributions#debinstall
 if [ "$ghost_num" = "1" ] || [ ! -f /usr/bin/node ]; then
   curl -sL https://deb.nodesource.com/setup_0.12 | bash -
-  apt-get -yqq install nodejs=0.12\*
+  apt-get -yq install nodejs=0.12\*
 fi
 
 # To keep your Ghost blog running, install "forever".
@@ -484,10 +484,10 @@ You must set up DNS (A Record) to point ${BLOG_FQDN}
 to this server's IP ${PUBLIC_IP}
 
 Browse to http://${BLOG_FQDN}/ghost (or set up SSH port forwarding
-and browse to http://localhost:${ghost_port}/ghost) to complete
-the initial configuration of your blog. Choose a strong password.
+and browse to http://localhost:${ghost_port}/ghost) to complete the initial
+configuration of your blog. Choose a strong password.
 
-To restart Ghost blog:
+To restart this Ghost blog:
 su - ${ghost_user} -s /bin/bash -c 'forever stopall; ./starter.sh'
 
 To restart Nginx web server:

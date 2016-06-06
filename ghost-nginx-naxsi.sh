@@ -253,10 +253,12 @@ su - "$ghost_user" -s /bin/bash <<'SU_END'
 # Retrieve variables from temp file:
 . /tmp/BLOG_VARS
 
-# Get the Ghost blog source, unzip and install.
-wget -t 3 -T 30 -nv -O ghost-0.8.0.zip https://ghost.org/zip/ghost-0.8.0.zip
+# Get the Ghost blog source (latest version), unzip and install.
+ghost_url1="https://ghost.org/zip/ghost-latest.zip"
+ghost_url2="$(wget -t 3 -T 15 -qO- https://api.github.com/repos/TryGhost/Ghost/releases | grep browser_download_url | head -n 1 | cut -d '"' -f 4)"
+wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url1" || wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url2"
 [ "$?" != "0" ] && { echo "Cannot download Ghost blog source. Aborting."; exit 1; }
-unzip -o -qq ghost-0.8.0.zip && /bin/rm -f ghost-0.8.0.zip
+unzip -o -qq ghost-latest.zip && /bin/rm -f ghost-latest.zip
 npm install --production
 
 # Generate config file and make sure that Ghost uses your actual domain name

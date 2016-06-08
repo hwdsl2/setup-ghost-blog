@@ -8,7 +8,7 @@
 #
 # *DO NOT* run this script on your PC or Mac!
 #
-# Copyright (C) 2015-2016 Lin Song
+# Copyright (C) 2015-2016 Lin Song <linsongui@gmail.com>
 # Based on the work of Herman Stevens (Copyright 2013)
 #
 # This program is free software: you can redistribute it and/or modify it under
@@ -24,16 +24,20 @@
 
 max_blogs=10
 
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+echoerr() { echo "$@" 1>&2; }
+
 os_type="$(lsb_release -si 2>/dev/null)"
 if [ "$os_type" != "Ubuntu" ] && [ "$os_type" != "Debian" ]; then
-  echo "This script only supports Ubuntu or Debian systems."
+  echoerr "This script only supports Ubuntu or Debian systems."
   exit 1
 fi
 
 if [ "$os_type" = "Ubuntu" ]; then
   os_ver="$(lsb_release -sr)"
   if [ "$os_ver" != "16.04" ] && [ "$os_ver" != "14.04" ] && [ "$os_ver" != "12.04" ]; then
-    echo "This script only supports Ubuntu 16.04, 14.04 and 12.04."
+    echoerr "This script only supports Ubuntu 16.04, 14.04 and 12.04."
     exit 1
   fi
 fi
@@ -41,21 +45,21 @@ fi
 if [ "$os_type" = "Debian" ]; then
   os_ver="$(sed 's/\..*//' /etc/debian_version 2>/dev/null)"
   if [ "$os_ver" != "8" ]; then
-    echo "This script only supports Debian 8 (Jessie)."
+    echoerr "This script only supports Debian 8 (Jessie)."
     exit 1
   fi
 fi
 
 if [ "$(id -u)" != 0 ]; then
-  echo "Script must be run as root. Try 'sudo bash $0'"
+  echoerr "Script must be run as root. Try 'sudo bash $0'"
   exit 1
 fi
 
 phymem="$(free | awk '/^Mem:/{print $2}')"
 [ -z "$phymem" ] && phymem=0
 if [ "$phymem" -lt 500000 ]; then
-  echo "This server does not have enough RAM. Setup cannot continue."
-  echo "A minimum of 512 MB RAM is required for Ghost blog install."
+  echoerr "This server does not have enough RAM. Setup cannot continue."
+  echoerr "A minimum of 512 MB RAM is required for Ghost blog install."
   exit 1
 fi
 
@@ -67,12 +71,12 @@ fi
 
 FQDN_REGEX='^(([a-zA-Z](-?[a-zA-Z0-9])*)\.)*[a-zA-Z](-?[a-zA-Z0-9])+\.[a-zA-Z]{2,}$'
 if ! printf %s "$1" | grep -Eq "$FQDN_REGEX"; then
-  echo "Invalid parameter. You must enter a fully qualified domain name (FQDN)."
+  echoerr "Invalid parameter. You must enter a fully qualified domain name (FQDN)."
   exit 1
 fi
 
 if id -u "ghost${max_blogs}" >/dev/null 2>&1; then
-  echo "Maximum number of Ghost blogs (${max_blogs}) reached. Aborting."
+  echoerr "Maximum number of Ghost blogs (${max_blogs}) reached. Aborting."
   exit 1
 fi
 
@@ -258,7 +262,7 @@ su - "$ghost_user" -s /bin/bash <<'SU_END'
 ghost_url1="https://ghost.org/zip/ghost-latest.zip"
 ghost_url2="$(wget -t 3 -T 15 -qO- https://api.github.com/repos/TryGhost/Ghost/releases | grep browser_download_url | head -n 1 | cut -d '"' -f 4)"
 wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url1" || wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url2"
-[ "$?" != "0" ] && { echo "Cannot download Ghost blog source. Aborting."; exit 1; }
+[ "$?" != "0" ] && { echoerr "Cannot download Ghost blog source. Aborting."; exit 1; }
 unzip -o -qq ghost-latest.zip && /bin/rm -f ghost-latest.zip
 npm install --production
 
@@ -318,9 +322,9 @@ if [ "$ghost_num" = "1" ] || [ ! -f /opt/nginx/sbin/nginx ]; then
 # We use ModSecurity's "nginx_refactoring" branch for improved stability.
 cd /opt/src || exit 1
 wget -t 3 -T 30 -nv -O nginx_refactoring.zip https://github.com/SpiderLabs/ModSecurity/archive/nginx_refactoring.zip
-[ "$?" != "0" ] && { echo "Cannot download ModSecurity source. Aborting."; exit 1; }
+[ "$?" != "0" ] && { echoerr "Cannot download ModSecurity source. Aborting."; exit 1; }
 unzip -o -qq nginx_refactoring.zip && /bin/rm -f nginx_refactoring.zip
-cd ModSecurity-nginx_refactoring || { echo "Cannot enter ModSecurity source dir. Aborting."; exit 1; }
+cd ModSecurity-nginx_refactoring || { echoerr "Cannot enter ModSecurity source dir. Aborting."; exit 1; }
 ./autogen.sh
 ./configure --enable-standalone-module --disable-mlogc
 make -s
@@ -331,7 +335,7 @@ adduser --system --no-create-home --disabled-login --disabled-password --group n
 # Download and compile Nginx:
 cd /opt/src || exit 1
 wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.10.1.tar.gz | tar xz
-[ ! -d nginx-1.10.1 ] && { echo "Cannot download Nginx source. Aborting."; exit 1; }
+[ ! -d nginx-1.10.1 ] && { echoerr "Cannot download Nginx source. Aborting."; exit 1; }
 cd nginx-1.10.1 || exit 1
 ./configure --add-module=../ModSecurity-nginx_refactoring/nginx/modsecurity \
   --prefix=/opt/nginx --user=nginx --group=nginx \
@@ -347,9 +351,9 @@ cd /opt/nginx/conf || exit 1
 mod_conf1="modsecurity_crs_41_xss_attacks.conf"
 mod_conf2="modsecurity_crs_41_sql_injection_attacks.conf"
 wget -t 3 -T 30 -nv -O "$mod_conf1" "https://raw.githubusercontent.com/SpiderLabs/owasp-modsecurity-crs/master/base_rules/$mod_conf1"
-[ "$?" != "0" ] && { echo "Cannot download $mod_conf1. Aborting."; exit 1; }
+[ "$?" != "0" ] && { echoerr "Cannot download $mod_conf1. Aborting."; exit 1; }
 wget -t 3 -T 30 -nv -O "$mod_conf2" "https://raw.githubusercontent.com/SpiderLabs/owasp-modsecurity-crs/master/base_rules/$mod_conf2"
-[ "$?" != "0" ] && { echo "Cannot download $mod_conf2. Aborting."; exit 1; }
+[ "$?" != "0" ] && { echoerr "Cannot download $mod_conf2. Aborting."; exit 1; }
 
 # Disable the JSON parser due to issues (400 Bad Request) when updating a blog post.
 # Ref: https://github.com/SpiderLabs/ModSecurity/issues/939
@@ -445,13 +449,13 @@ cd /opt/nginx/conf || exit 1
 if [ "$ghost_num" = "1" ]; then
   example_conf1=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-modsecurity.conf
   wget -t 3 -T 30 -nv -O nginx.conf "$example_conf1"
-  [ "$?" != "0" ] && { echo "Cannot download example nginx.conf. Aborting."; exit 1; }
+  [ "$?" != "0" ] && { echoerr "Cannot download example nginx.conf. Aborting."; exit 1; }
 fi
 
 if [ "$ghost_num" = "1" ] || [ ! -f nginx-include.conf ]; then
   example_conf2=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-modsecurity-include.conf
   wget -t 3 -T 30 -nv -O nginx-include.conf "$example_conf2"
-  [ "$?" != "0" ] && { echo "Cannot download example nginx.conf. Aborting."; exit 1; }
+  [ "$?" != "0" ] && { echoerr "Cannot download example nginx.conf. Aborting."; exit 1; }
 fi
 
 # Modify example configuration for use

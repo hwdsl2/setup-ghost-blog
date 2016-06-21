@@ -259,7 +259,8 @@ su - "$ghost_user" -s /bin/bash <<'SU_END'
 
 # Get the Ghost blog source (latest version), unzip and install.
 ghost_url1="https://ghost.org/zip/ghost-latest.zip"
-ghost_url2="$(wget -t 3 -T 15 -qO- https://api.github.com/repos/TryGhost/Ghost/releases | grep browser_download_url | head -n 1 | cut -d '"' -f 4)"
+ghost_rels="https://api.github.com/repos/TryGhost/Ghost/releases"
+ghost_url2="$(wget -t 3 -T 15 -qO- $ghost_rels | grep browser_download_url | grep -v beta | head -n 1 | cut -d '"' -f 4)"
 wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url1" || wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url2"
 [ "$?" != "0" ] && { echoerr "Cannot download Ghost blog source. Aborting."; exit 1; }
 unzip -o -qq ghost-latest.zip && /bin/rm -f ghost-latest.zip

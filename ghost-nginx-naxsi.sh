@@ -26,7 +26,7 @@ max_blogs=10
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
-echoerr() { echo "$@" 1>&2; }
+echoerr() { echo "Error: ${1}" >&2; }
 
 os_type="$(lsb_release -si 2>/dev/null)"
 if [ "$os_type" != "Ubuntu" ] && [ "$os_type" != "Debian" ]; then
@@ -58,7 +58,6 @@ fi
 phymem="$(free | awk '/^Mem:/{print $2}')"
 [ -z "$phymem" ] && phymem=0
 if [ "$phymem" -lt 500000 ]; then
-  echoerr "This server does not have enough RAM. Setup cannot continue."
   echoerr "A minimum of 512 MB RAM is required for Ghost blog install."
   exit 1
 fi
@@ -76,7 +75,7 @@ if ! printf %s "$1" | grep -Eq "$FQDN_REGEX"; then
 fi
 
 if id -u "ghost${max_blogs}" >/dev/null 2>&1; then
-  echoerr "Maximum number of Ghost blogs (${max_blogs}) reached. Aborting."
+  echoerr "Maximum number of Ghost blogs (${max_blogs}) reached."
   exit 1
 fi
 
@@ -90,7 +89,7 @@ if id -u ghost >/dev/null 2>&1; then
     echo "To install additional blogs, you must use a new full domain name."
     exit 1
   fi
-
+  
   for count in $(seq 2 ${max_blogs}); do
     if ! id -u "ghost${count}" >/dev/null 2>&1; then
       ghost_num="${count}"
@@ -100,25 +99,25 @@ if id -u ghost >/dev/null 2>&1; then
       break
     fi
   done
-
+  
   echo
-  read -r -p "Install ANOTHER Ghost blog on this server? [y/N] " response
+  read -r -p "Install another Ghost blog on this server? [y/N] " response
   case $response in
-      [yY][eE][sS]|[yY])
-          echo
-          ;;
-      *)
-          echo "Aborting."
-          exit 1
-          ;;
+    [yY][eE][sS]|[yY])
+      echo
+      ;;
+    *)
+      echo "Aborting."
+      exit 1
+      ;;
   esac
-
+  
   phymem_req=250
   let phymem_req1=$phymem_req*$ghost_num
   let phymem_req2=$phymem_req*$ghost_num*1000
   [ "$ghost_num" = "3" ] && phymem_req1=500
   [ "$ghost_num" = "3" ] && phymem_req2=500000
-
+  
   if [ "$phymem" -lt "$phymem_req2" ]; then
     echo "This server may not have enough RAM to install another Ghost blog."
     echo "It is estimated that at least $phymem_req1 MB total RAM is required."
@@ -127,15 +126,15 @@ if id -u ghost >/dev/null 2>&1; then
     echo
     read -r -p "Do you REALLY want to continue (at your own risk)? [y/N] " response
     case $response in
-        [yY][eE][sS]|[yY])
-            echo
-            ;;
-        *)
-            echo "Aborting."
-            exit 1
-            ;;
+      [yY][eE][sS]|[yY])
+        echo
+        ;;
+      *)
+        echo "Aborting."
+        exit 1
+        ;;
     esac
-
+    
   fi
 fi
 
@@ -147,37 +146,30 @@ with Nginx (as a reverse proxy) and Naxsi web application firewall.
 
 The full domain name for your new blog is:
 
-$1
+*** $1 ***
 
 Please double check. This MUST be correct for it to work!
 
 IMPORTANT: This script should only be used on a Virtual Private Server (VPS)
- or dedicated server, with *freshly installed* Ubuntu LTS or Debian 8.
- *DO NOT* run this script on your PC or Mac!
+or dedicated server, with *freshly installed* Ubuntu LTS or Debian 8.
+*DO NOT* run this script on your PC or Mac!
 
 EOF
 
 read -r -p "Confirm and proceed with the install? [y/N] " response
 case $response in
-    [yY][eE][sS]|[yY])
-        echo
-        echo "Please be patient. Setup is continuing..."
-        echo
-        ;;
-    *)
-        echo "Aborting."
-        exit 1
-        ;;
+  [yY][eE][sS]|[yY])
+    echo
+    echo "Please be patient. Setup is continuing..."
+    echo
+    ;;
+  *)
+    echo "Aborting."
+    exit 1
+    ;;
 esac
 
 BLOG_FQDN=$1
-
-/bin/rm -f /tmp/BLOG_VARS
-echo "BLOG_FQDN='$1'" > /tmp/BLOG_VARS
-echo "ghost_num='${ghost_num}'" >> /tmp/BLOG_VARS
-echo "ghost_port='${ghost_port}'" >> /tmp/BLOG_VARS
-
-[ ! -f /tmp/BLOG_VARS ] && exit 1
 
 # Create and change to working dir
 mkdir -p /opt/src
@@ -185,12 +177,12 @@ cd /opt/src || exit 1
 
 # Update package index
 export DEBIAN_FRONTEND=noninteractive
-apt-get -yq update
+apt-get -yq update || { echoerr "'apt-get update' failed."; exit 1; }
 
 # We need some more software
 apt-get -yq install unzip fail2ban iptables-persistent \
-  build-essential apache2-dev libxml2-dev wget curl \
-  libcurl4-openssl-dev libpcre3-dev libssl-dev
+  build-essential apache2-dev libxml2-dev wget curl sudo \
+  libcurl4-openssl-dev libpcre3-dev libssl-dev || { echoerr "'apt-get install' failed."; exit 1; }
 
 # Modify the iptables configuration
 # Make those rules persistent using the package "iptables-persistent".
@@ -225,7 +217,7 @@ service fail2ban start
 # Ref: https://github.com/nodesource/distributions#debinstall
 if [ "$ghost_num" = "1" ] || [ ! -f /usr/bin/node ]; then
   curl -sL https://deb.nodesource.com/setup_0.12 | bash -
-  apt-get -yq install nodejs=0.12\*
+  apt-get -yq install nodejs=0.12\* || { echoerr "Failed to install 'nodejs'."; exit 1; }
 fi
 
 # To keep your Ghost blog running, install "forever".
@@ -249,20 +241,16 @@ if [ ! -f /proc/user_beancounters ]; then
   chmod 600 "$swap_tmp" && mkswap "$swap_tmp" >/dev/null && swapon "$swap_tmp"
 fi
 
-# Switch to Ghost blog user.
-# We use a "here document" to run multiple commands as this user.
-
-su - "$ghost_user" -s /bin/bash <<'SU_END'
-
-# Retrieve variables from temp file:
-. /tmp/BLOG_VARS
+# Switch to Ghost blog user. We use a "here document" to run multiple commands as this user.
+cd "/var/www/${BLOG_FQDN}" || exit 1
+sudo -u "$ghost_user" BLOG_FQDN="$BLOG_FQDN" ghost_num="$ghost_num" ghost_port="$ghost_port" HOME="/var/www/$BLOG_FQDN" /bin/bash <<'SU_END'
 
 # Get the Ghost blog source (latest version), unzip and install.
 ghost_url1="https://ghost.org/zip/ghost-latest.zip"
 ghost_rels="https://api.github.com/repos/TryGhost/Ghost/releases"
 ghost_url2="$(wget -t 3 -T 15 -qO- $ghost_rels | grep browser_download_url | grep -v beta | head -n 1 | cut -d '"' -f 4)"
 wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url1" || wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url2"
-[ "$?" != "0" ] && { echoerr "Cannot download Ghost blog source. Aborting."; exit 1; }
+[ "$?" != "0" ] && { echo "Error: Cannot download Ghost blog source." >&2; exit 1; }
 unzip -o -qq ghost-latest.zip && /bin/rm -f ghost-latest.zip
 npm install --production
 
@@ -317,32 +305,32 @@ else
 fi
 
 if [ "$ghost_num" = "1" ] || [ ! -f /opt/nginx/sbin/nginx ]; then
-
-# Download and extract Naxsi:
-cd /opt/src || exit 1
-wget -t 3 -T 30 -qO- https://github.com/nbs-system/naxsi/archive/0.54.tar.gz | tar xz
-[ ! -d naxsi-0.54 ] && { echoerr "Cannot download Naxsi source. Aborting."; exit 1; }
-
-# Next we create a user for nginx:
-adduser --system --no-create-home --disabled-login --disabled-password --group nginx
-
-# Download and compile Nginx:
-cd /opt/src || exit 1
-wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.10.1.tar.gz | tar xz
-[ ! -d nginx-1.10.1 ] && { echoerr "Cannot download Nginx source. Aborting."; exit 1; }
-cd nginx-1.10.1 || exit 1
-./configure --add-module=../naxsi-0.54/naxsi_src/ \
+  
+  # Download and extract Naxsi:
+  cd /opt/src || exit 1
+  wget -t 3 -T 30 -qO- https://github.com/nbs-system/naxsi/archive/0.54.tar.gz | tar xz
+  [ ! -d naxsi-0.54 ] && { echoerr "Cannot download Naxsi source."; exit 1; }
+  
+  # Next we create a user for nginx:
+  adduser --system --no-create-home --disabled-login --disabled-password --group nginx
+  
+  # Download and compile Nginx:
+  cd /opt/src || exit 1
+  wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.10.1.tar.gz | tar xz
+  [ ! -d nginx-1.10.1 ] && { echoerr "Cannot download Nginx source."; exit 1; }
+  cd nginx-1.10.1 || exit 1
+  ./configure --add-module=../naxsi-0.54/naxsi_src/ \
   --prefix=/opt/nginx --user=nginx --group=nginx \
   --with-http_ssl_module --with-http_v2_module --with-http_realip_module
-make -s && make -s install
-
-# Add Naxsi core rules
-mkdir -p /etc/nginx
-/bin/cp -f /opt/src/naxsi-0.54/naxsi_config/naxsi_core.rules /etc/nginx/
-
-# Add Naxsi whitelist rules needed for Ghost blog.
-# Ref: https://github.com/nbs-system/naxsi/wiki/whitelists
-
+  make -s && make -s install
+  
+  # Add Naxsi core rules
+  mkdir -p /etc/nginx
+  /bin/cp -f /opt/src/naxsi-0.54/naxsi_config/naxsi_core.rules /etc/nginx/
+  
+  # Add Naxsi whitelist rules needed for Ghost blog.
+  # Ref: https://github.com/nbs-system/naxsi/wiki/whitelists
+  
 cat > /etc/nginx/mysite.rules <<'EOF'
 #LearningMode; #Enables learning mode
 SecRulesEnabled;
@@ -373,13 +361,13 @@ BasicRule  wl:1001,1015,1205,1302,1303,1310,1311 "mz:$URL_X:^/ghost/api/v[0-9]+\
 BasicRule  wl:16 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/mail/test/$|BODY";
 BasicRule  wl:2 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/uploads/$|BODY";
 EOF
-
-# Set up NXAPI (Naxsi log parser, whitelist & report generator)
-# Ref: https://github.com/nbs-system/naxsi/tree/master/nxapi
-cd /opt/src/naxsi-0.54/nxapi/ && python setup.py install
-
-# Create the following files to make Nginx autorun:
-
+  
+  # Set up NXAPI (Naxsi log parser, whitelist & report generator)
+  # Ref: https://github.com/nbs-system/naxsi/tree/master/nxapi
+  cd /opt/src/naxsi-0.54/nxapi/ && python setup.py install
+  
+  # Create the following files to make Nginx autorun:
+  
 cat > /etc/init/nginx.conf <<'EOF'
 # nginx
 description "nginx http daemon"
@@ -400,9 +388,9 @@ fi
 end script
 exec $DAEMON
 EOF
-
-if [ -d /lib/systemd/system ]; then
-
+  
+  if [ -d /lib/systemd/system ]; then
+    
 cat > /lib/systemd/system/nginx.service <<'EOF'
 [Unit]
 Description=The NGINX HTTP and reverse proxy server
@@ -420,12 +408,12 @@ PrivateTmp=true
 [Install]
 WantedBy=multi-user.target
 EOF
-
-systemctl daemon-reload 2>/dev/null
-systemctl enable nginx.service 2>/dev/null
-
-fi
-
+    
+    systemctl daemon-reload 2>/dev/null
+    systemctl enable nginx.service 2>/dev/null
+    
+  fi
+  
 fi
 
 # Create the public folder which will hold robots.txt, etc.
@@ -437,13 +425,13 @@ cd /opt/nginx/conf || exit 1
 if [ "$ghost_num" = "1" ]; then
   example_conf1=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-naxsi.conf
   wget -t 3 -T 30 -nv -O nginx.conf "$example_conf1"
-  [ "$?" != "0" ] && { echoerr "Cannot download example nginx.conf. Aborting."; exit 1; }
+  [ "$?" != "0" ] && { echoerr "Cannot download example nginx.conf."; exit 1; }
 fi
 
 if [ "$ghost_num" = "1" ] || [ ! -f nginx-include.conf ]; then
   example_conf2=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-naxsi-include.conf
   wget -t 3 -T 30 -nv -O nginx-include.conf "$example_conf2"
-  [ "$?" != "0" ] && { echoerr "Cannot download example nginx.conf. Aborting."; exit 1; }
+  [ "$?" != "0" ] && { echoerr "Cannot download example nginx.conf."; exit 1; }
 fi
 
 # Modify example configuration for use
@@ -453,8 +441,8 @@ if [ "$ghost_num" = "1" ]; then
 else
   /bin/cp -f nginx-include.conf "nginx-blog${ghost_num}.conf"
   sed -i -e "/127\.0\.0\.1:2368/s/2368/${ghost_port}/" \
-         -e "s/ghost_upstream/ghost_upstream${ghost_num}/" \
-         -e "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" "nginx-blog${ghost_num}.conf"
+  -e "s/ghost_upstream/ghost_upstream${ghost_num}/" \
+  -e "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" "nginx-blog${ghost_num}.conf"
   sed -i "/include nginx-blog1\.conf/a\    include nginx-blog${ghost_num}.conf;" nginx.conf
 fi
 
@@ -470,14 +458,11 @@ su - "$ghost_user" -s /bin/bash -c "./starter.sh"
 service nginx restart
 
 # Retrieve server IP for display below
-PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
-
-# Remove temporary file
-/bin/rm -f /tmp/BLOG_VARS
+PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://whatismyip.akamai.com)
 
 cat <<EOF
 
-===================================================================
+==================================================================================
 
 Setup is complete. Your new Ghost blog is now ready for use!
 
@@ -487,12 +472,11 @@ Nginx web server logs: /opt/nginx/logs
 
 [Next Steps]
 
-You must set up DNS (A Record) to point ${BLOG_FQDN}
-to this server's IP ${PUBLIC_IP}
+You must set up DNS (A Record) to point ${BLOG_FQDN} to this server ${PUBLIC_IP}
 
-Browse to http://${BLOG_FQDN}/ghost (or set up SSH port forwarding
-and browse to http://localhost:${ghost_port}/ghost) to complete the initial
-configuration of your blog. Choose a strong password.
+Browse to http://${BLOG_FQDN}/ghost (OR you may set up SSH port forwarding
+and browse to http://localhost:${ghost_port}/ghost) to complete the initial setup
+of your blog. Choose a very secure password.
 
 To restart this Ghost blog:
 su - ${ghost_user} -s /bin/bash -c 'forever stopall; ./starter.sh'
@@ -507,11 +491,10 @@ https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/
 2. Sitemap, robots.txt and extras
 3. Setting up e-mail on Ghost
 
-Ghost support: http://support.ghost.org
-Real-time chat: https://ghost.org/slack
+Ghost support: http://support.ghost.org, Real-time chat: https://ghost.org/slack
 Naxsi docs: https://github.com/nbs-system/naxsi/wiki
 
-===================================================================
+==================================================================================
 
 EOF
 

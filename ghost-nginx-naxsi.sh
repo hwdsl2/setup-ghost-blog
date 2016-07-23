@@ -6,7 +6,7 @@
 # It should only be used on a Virtual Private Server (VPS) or dedicated server,
 # with *freshly installed* Ubuntu LTS or Debian 8.
 #
-# *DO NOT* run this script on your PC or Mac!
+# DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
 #
 # Copyright (C) 2015-2016 Lin Song <linsongui@gmail.com>
 # Based on the work of Herman Stevens (Copyright 2013)
@@ -141,18 +141,18 @@ fi
 clear
 
 cat <<EOF
-Welcome! This script installs Ghost blog (https://ghost.org) on your server,
+Welcome! This script will install Ghost blog (https://ghost.org) on your server,
 with Nginx (as a reverse proxy) and Naxsi web application firewall.
 
 The full domain name for your new blog is:
 
-*** $1 ***
+>>> $1 <<<
 
 Please double check. This MUST be correct for it to work!
 
 IMPORTANT: This script should only be used on a Virtual Private Server (VPS)
 or dedicated server, with *freshly installed* Ubuntu LTS or Debian 8.
-*DO NOT* run this script on your PC or Mac!
+DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
 
 EOF
 
@@ -474,8 +474,8 @@ Nginx web server logs: /opt/nginx/logs
 
 You must set up DNS (A Record) to point ${BLOG_FQDN} to this server ${PUBLIC_IP}
 
-Browse to http://${BLOG_FQDN}/ghost (OR you may set up SSH port forwarding
-and browse to http://localhost:${ghost_port}/ghost) to complete the initial setup
+Browse to http://${BLOG_FQDN}/ghost (alternatively, set up SSH port forwarding
+and browse to http://localhost:${ghost_port}/ghost) to complete the initial configuration
 of your blog. Choose a very secure password.
 
 To restart this Ghost blog:

@@ -6,7 +6,7 @@
 # It should only be used on a Virtual Private Server (VPS) or dedicated server,
 # with *freshly installed* Ubuntu LTS or Debian 8.
 #
-# *DO NOT* run this script on your PC or Mac!
+# DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
 #
 # Copyright (C) 2015-2016 Lin Song <linsongui@gmail.com>
 # Based on the work of Herman Stevens (Copyright 2013)
@@ -141,18 +141,18 @@ fi
 clear
 
 cat <<EOF
-Welcome! This script installs Ghost blog (https://ghost.org) on your server,
+Welcome! This script will install Ghost blog (https://ghost.org) on your server,
 with Nginx (as a reverse proxy) and Modsecurity web application firewall.
 
 The full domain name for your new blog is:
 
-*** $1 ***
+>>> $1 <<<
 
 Please double check. This MUST be correct for it to work!
 
 IMPORTANT: This script should only be used on a Virtual Private Server (VPS)
 or dedicated server, with *freshly installed* Ubuntu LTS or Debian 8.
-*DO NOT* run this script on your PC or Mac!
+DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
 
 EOF
 
@@ -491,8 +491,8 @@ EOF
 if [ "$ghost_num" = "1" ]; then
   
 cat <<EOF
-Browse to http://${BLOG_FQDN}/ghost (OR you may set up SSH port forwarding
-and browse to http://localhost:${ghost_port}/ghost) to complete the initial setup
+Browse to http://${BLOG_FQDN}/ghost (alternatively, set up SSH port forwarding
+and browse to http://localhost:${ghost_port}/ghost) to complete the initial configuration
 of your blog. Choose a very secure password.
 EOF
   
@@ -503,6 +503,7 @@ IMPORTANT: To work around a ModSecurity bug which only affects multiple blogs,
 from now on you must configure your blogs via SSH port forwarding.
 First, set up your SSH client to forward port 2368 (1st blog), 2369 (2nd blog), etc.
 Then browse to http://localhost:2368/ghost (or 2369, etc.) to manage your blogs.
+Ref: https://github.com/hwdsl2/setup-ghost-blog/issues/1
 EOF
   
 fi

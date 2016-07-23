@@ -216,8 +216,8 @@ service fail2ban start
 # Next, we need to install Node.js.
 # Ref: https://github.com/nodesource/distributions#debinstall
 if [ "$ghost_num" = "1" ] || [ ! -f /usr/bin/node ]; then
-  curl -sL https://deb.nodesource.com/setup_0.12 | bash -
-  apt-get -yq install nodejs=0.12\* || { echoerr "Failed to install 'nodejs'."; exit 1; }
+  curl -sL https://deb.nodesource.com/setup_4.x | bash -
+  apt-get -yq install nodejs || { echoerr "Failed to install 'nodejs'."; exit 1; }
 fi
 
 # To keep your Ghost blog running, install "forever".

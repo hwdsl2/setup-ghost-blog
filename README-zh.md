@@ -1,44 +1,49 @@
-﻿# Ghost 博客平台一键安装脚本
+﻿# Ghost 博客平台一键安装脚本 &nbsp;[![Build Status](https://static.ls20.com/travis-ci/setup-ghost-blog.svg)](https://travis-ci.org/hwdsl2/setup-ghost-blog)
 
 *其他语言版本: [English](README.md), [简体中文](README-zh.md).*
 
-使用 Linux Bash 脚本一键搭建属于你自己的 <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost 博客</a>。为了提高性能与安全性，将同时安装 <a href="http://nginx.org/en/" target="_blank">Nginx</a> （作为反向代理），以及 Web 应用防火墙 <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> 或者 <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a>。
+使用 Bash 脚本一键搭建你自己的 <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost 博客平台</a>。为了最佳化性能与安全性，将同时安装 <a href="http://nginx.org/en/" target="_blank">Nginx</a> (作为反向代理)，以及 Web 应用防火墙 <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> 或者 <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a>。Ghost 博客是一个简约并且现代的<a href="https://ghost.org/vs/wordpress/" target="_blank"> WordPress 替代品</a>。它设计精美，使用方便，完全开源，并且对所有人都是免费的。
 
-Ghost 博客是一个简约和现代的<a href="https://ghost.org/vs/wordpress/" target="_blank"> WordPress 替代品</a>。它设计精美，使用方便，完全开源，并且对所有人都是免费的。
+**新：** 现在你可以安装 **最多 10 个博客** 在同一台服务器上。只需再次运行脚本，并指定新的完整域名作为参数。
 
-**新特性：** 现在你可以安装 **最多十个** 博客在同一台服务器上。只需再次运行脚本，并指定新的完整域名作为参数。
-
-#### <a href="https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/" target="_blank">详细的教程请参见我的博客文章</a>
+<a href="https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/" target="_blank">**&raquo; 相关教程： Ghost Blog Auto Setup with Nginx and ModSecurity**</a> <a href="https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/" target="_blank">**(or Naxsi)**</a>
 
 ## 系统要求
 
-一个专用服务器或虚拟专用服务器 (VPS)，\*全新安装\* ：   
+一个专用服务器或虚拟专用服务器 (VPS)，**全新安装** 以下操作系统之一：   
 - Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise)
 - Debian 8 (Jessie)
 
-注： 至少 512 MB 内存是必须的。
+**注：** 需要至少 512 MB 内存。
 
 :warning: **不要** 在你的 PC 或者 Mac 上运行这些脚本！它们只能用在服务器上！
 
-## 如何安装
+## 安装说明
 
 首先，更新你的系统： 运行 `apt-get update && apt-get dist-upgrade` 并重启。这一步是可选的，但推荐。
 
-### 选择 ModSecurity 防火墙：
+#### 选择 ModSecurity 防火墙：
 
 ```
-wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-modsecurity.sh -O ghost-nginx-modsecurity.sh
+wget https://git.io/ghost-nginx-modsecurity -O ghost-nginx-modsecurity.sh
 sudo bash ghost-nginx-modsecurity.sh BLOG_FULL_DOMAIN_NAME
 ```
 
-### 选择 Naxsi 防火墙：
+#### 选择 Naxsi 防火墙：
 
 ```
-wget https://github.com/hwdsl2/setup-ghost-blog/raw/master/ghost-nginx-naxsi.sh -O ghost-nginx-naxsi.sh
+wget https://git.io/ghost-nginx-naxsi -O ghost-nginx-naxsi.sh
 sudo bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 ```
 
-注： 请将上面的 `BLOG_FULL_DOMAIN_NAME` 替换为你的博客的完整域名。
+**注：** 请将上面的 `BLOG_FULL_DOMAIN_NAME` 替换为你的博客的完整域名。
+
+## 作者
+
+**Lin Song** (linsongui@gmail.com)   
+- 最后一年的美国在读博士生，专业是电子与计算机工程 (ECE)
+- 现在正在积极寻找新的工作机会，比如软件或系统工程师
+- 在 LinkedIn 上与我联系： <a href="https://www.linkedin.com/in/linsongui" target="_blank">https://www.linkedin.com/in/linsongui</a>
 
 ## 授权协议
 

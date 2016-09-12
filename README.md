@@ -2,19 +2,21 @@
 
 *Read this in other languages: [English](README.md), [简体中文](README-zh.md).*
 
-Scripts to install your own <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost blog(s)</a>, with <a href="http://nginx.org/en/" target="_blank">Nginx</a> (as a reverse proxy) and <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> or <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a> web application firewall for maximum performance and security. Ghost blog is a simple, modern <a href="https://ghost.org/vs/wordpress/" target="_blank">WordPress alternative</a> which puts the excitement back into blogging. It's beautifully designed, easy to use, completely open source, and free for everyone.
+Scripts to install your own <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost blog(s)</a>, with <a href="http://nginx.org/en/" target="_blank">Nginx</a> (as a reverse proxy) and <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> or <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a> web application firewall for maximum performance and security.
 
-**New:** You can now install **up to 10 blogs** on the same server. Simply re-run the script with a new full domain name.
+Ghost blog is a simple, modern <a href="https://ghost.org/vs/wordpress/" target="_blank">WordPress alternative</a> which puts the excitement back into blogging. It's beautifully designed, easy to use, completely open source, and free for everyone.
+
+**New:** Install **up to 10 blogs** on your server! Simply re-run the script with a new full domain name.
 
 <a href="https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/" target="_blank">**&raquo; Related tutorial: Ghost Blog Auto Setup with Nginx and ModSecurity**</a> <a href="https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/" target="_blank">**(or Naxsi)**</a>
 
 ## Requirements
 
-A dedicated server or Virtual Private Server (VPS), **freshly installed** with one of these OS:   
+A dedicated server or Virtual Private Server (VPS), **freshly installed** with:   
 - Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise)
 - Debian 8 (Jessie)
 
-**Note:** A minimum of 512 MB RAM is required.
+**Note:** A minimum of **512 MB** RAM is required.
 
 :warning: **DO NOT** run these scripts on your PC or Mac! They should only be used on a server!
 
@@ -36,7 +38,7 @@ wget https://git.io/ghost-nginx-naxsi -O ghost-nginx-naxsi.sh
 sudo bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 ```
 
-**Note:** Replace `BLOG_FULL_DOMAIN_NAME` above with your actual domain name.
+**Note:** Replace `BLOG_FULL_DOMAIN_NAME` above with your actual full domain name. These scripts will automatically install the <a href="https://github.com/TryGhost/Ghost/releases" target="_blank">latest version</a> (excluding beta) of Ghost blog.
 
 ## Author
 

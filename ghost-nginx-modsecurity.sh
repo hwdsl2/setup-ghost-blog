@@ -3,8 +3,8 @@
 # Use this automated bash script to install Ghost blog on Ubuntu or Debian,
 # with Nginx (as a reverse proxy) and ModSecurity web application firewall.
 #
-# It should only be used on a Virtual Private Server (VPS) or dedicated server,
-# with *freshly installed* Ubuntu LTS or Debian 8.
+# This script should only be used on a Virtual Private Server (VPS)
+# or dedicated server, with *freshly installed* Ubuntu LTS or Debian 8.
 #
 # DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
 #
@@ -30,14 +30,14 @@ echoerr() { echo "Error: ${1}" >&2; }
 
 os_type="$(lsb_release -si 2>/dev/null)"
 if [ "$os_type" != "Ubuntu" ] && [ "$os_type" != "Debian" ]; then
-  echoerr "This script only supports Ubuntu or Debian systems."
+  echoerr "This script only supports Ubuntu/Debian."
   exit 1
 fi
 
 if [ "$os_type" = "Ubuntu" ]; then
   os_ver="$(lsb_release -sr)"
   if [ "$os_ver" != "16.04" ] && [ "$os_ver" != "14.04" ] && [ "$os_ver" != "12.04" ]; then
-    echoerr "This script only supports Ubuntu 16.04, 14.04 and 12.04."
+    echoerr "This script only supports Ubuntu 16.04/14.04/12.04."
     exit 1
   fi
 fi
@@ -150,9 +150,9 @@ The full domain name for your new blog is:
 
 Please double check. This MUST be correct for it to work!
 
-IMPORTANT: This script should only be used on a Virtual Private Server (VPS)
+IMPORTANT: DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
+This script should only be used on a Virtual Private Server (VPS)
 or dedicated server, with *freshly installed* Ubuntu LTS or Debian 8.
-DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
 
 EOF
 
@@ -182,9 +182,10 @@ apt-get -yq update || { echoerr "'apt-get update' failed."; exit 1; }
 # We need some more software
 apt-get -yq install unzip fail2ban iptables-persistent \
   build-essential apache2-dev libxml2-dev wget curl sudo \
-  libcurl4-openssl-dev libpcre3-dev libssl-dev libtool autoconf || { echoerr "'apt-get install' failed."; exit 1; }
+  libcurl4-openssl-dev libpcre3-dev libssl-dev \
+  libtool autoconf || { echoerr "'apt-get install' failed."; exit 1; }
 
-# Modify the iptables configuration
+# Create new iptables configuration
 # Make those rules persistent using the package "iptables-persistent".
 /bin/cp -f /etc/iptables/rules.v4 /etc/iptables/rules.v4.old
 service iptables-persistent start 2>/dev/null
@@ -193,9 +194,13 @@ iptables -P INPUT ACCEPT
 iptables -P FORWARD ACCEPT
 iptables -P OUTPUT ACCEPT
 iptables -F
+iptables -X
 iptables -t nat -F
+iptables -t nat -X
 iptables -t raw -F
+iptables -t raw -X
 iptables -t mangle -F
+iptables -t mangle -X
 iptables -A INPUT -m conntrack --ctstate INVALID -j DROP
 iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 iptables -A INPUT -i lo -j ACCEPT
@@ -478,7 +483,7 @@ cat <<EOF
 
 Setup is complete. Your new Ghost blog is now ready for use!
 
-Ghost blog was installed in: /var/www/${BLOG_FQDN}
+Ghost blog is installed in: /var/www/${BLOG_FQDN}
 ModSecurity and Nginx config files: /opt/nginx/conf
 Nginx web server logs: /opt/nginx/logs
 

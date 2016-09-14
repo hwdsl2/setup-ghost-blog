@@ -207,7 +207,7 @@ iptables -A INPUT -d 127.0.0.0/8 -j REJECT
 iptables -A INPUT -p icmp -j ACCEPT
 # Allow DHCP traffic
 iptables -A INPUT -p udp --dport 67:68 --sport 67:68 -j ACCEPT
-iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+iptables -A INPUT -p tcp --dport $(netstat -plunt|grep sshd|awk '{print $4}'|awk -F":" '{print $2}'|sed '/^\s*$/d') -j ACCEPT
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 iptables -A INPUT -j DROP

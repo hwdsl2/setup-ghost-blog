@@ -3,9 +3,6 @@
 # Use this automated bash script to install Ghost blog on Ubuntu or Debian,
 # with Nginx (as a reverse proxy) and Naxsi web application firewall.
 #
-# This script should only be used on a Virtual Private Server (VPS)
-# or dedicated server, with *freshly installed* Ubuntu LTS or Debian 8.
-#
 # DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
 #
 # Copyright (C) 2015-2016 Lin Song <linsongui@gmail.com>
@@ -151,8 +148,8 @@ The full domain name for your new blog is:
 Please double check. This MUST be correct for it to work!
 
 IMPORTANT: DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
-This script should only be used on a Virtual Private Server (VPS)
-or dedicated server, with *freshly installed* Ubuntu LTS or Debian 8.
+It should ONLY be used on a **freshly installed** Virtual Private Server (VPS)
+or dedicated server, with Ubuntu 16.04/14.04/12.04 or Debian 8.
 
 EOF
 
@@ -433,11 +430,9 @@ if [ "$ghost_num" = "1" ]; then
   [ "$?" != "0" ] && { echoerr "Cannot download example nginx.conf."; exit 1; }
 fi
 
-if [ "$ghost_num" = "1" ] || [ ! -f nginx-include.conf ]; then
-  example_conf2=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-naxsi-include.conf
-  wget -t 3 -T 30 -nv -O nginx-include.conf "$example_conf2"
-  [ "$?" != "0" ] && { echoerr "Cannot download example nginx.conf."; exit 1; }
-fi
+example_conf2=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-naxsi-include.conf
+wget -t 3 -T 30 -nv -O nginx-include.conf "$example_conf2"
+[ "$?" != "0" ] && { echoerr "Cannot download example nginx-include.conf."; exit 1; }
 
 # Modify example configuration for use
 if [ "$ghost_num" = "1" ]; then

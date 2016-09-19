@@ -1,7 +1,6 @@
 language: bash
 
 sudo: required
-dist: trusty
 
 addons:
   apt:
@@ -16,6 +15,7 @@ env:
 
 script:
  - shellcheck *.sh
+ - sudo rm -f /etc/profile.d/nvm.sh
  - sudo sed -i "/debian unstable/d" /etc/apt/sources.list
  - echo y         | sudo bash ghost-nginx-$TEST_SUITE.sh blog1.example.com
  - echo -e 'y\ny' | sudo bash ghost-nginx-$TEST_SUITE.sh blog2.example.com

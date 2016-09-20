@@ -138,8 +138,8 @@ fi
 clear
 
 cat <<EOF
-Welcome! This script will install Ghost blog (https://ghost.org) on your server,
-with Nginx (as a reverse proxy) and Naxsi web application firewall.
+Welcome! This script will install the latest version of Ghost blog (https://ghost.org)
+on your server, with Nginx (as a reverse proxy) and Naxsi web application firewall.
 
 The full domain name for your new blog is:
 
@@ -148,8 +148,9 @@ The full domain name for your new blog is:
 Please double check. This MUST be correct for it to work!
 
 IMPORTANT: DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
-It should ONLY be used on a **freshly installed** Virtual Private Server (VPS)
-or dedicated server, with Ubuntu 16.04/14.04/12.04 or Debian 8.
+
+This script should ONLY be used on a Virtual Private Server (VPS) or dedicated server,
+with **freshly installed** Ubuntu 16.04/14.04/12.04 or Debian 8.
 
 EOF
 

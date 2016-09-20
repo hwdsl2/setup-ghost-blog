@@ -310,8 +310,11 @@ if [ "$ghost_num" = "1" ] || [ ! -f /opt/nginx/sbin/nginx ]; then
   
   # Download and extract Naxsi:
   cd /opt/src || exit 1
-  wget -t 3 -T 30 -qO- https://github.com/nbs-system/naxsi/archive/0.54.tar.gz | tar xz
-  [ ! -d naxsi-0.54 ] && { echoerr "Cannot download Naxsi source."; exit 1; }
+  wget -t 3 -T 30 -qO- https://github.com/nbs-system/naxsi/archive/0.55.1.tar.gz | tar xz
+  [ ! -d naxsi-0.55.1 ] && { echoerr "Cannot download Naxsi source."; exit 1; }
+  
+  # Ref: https://github.com/nbs-system/naxsi/commit/c7e8cff427eaf6b6ece1b0b1c8ddaba11bb21d45
+  sed -i -e 's/127\.0\.0\.1:443/127.0.0.1:9200/' -e '/use_ssl/s/"True"/false/' naxsi-0.55.1/nxapi/nxapi.json
   
   # Next we create a user for nginx:
   adduser --system --no-create-home --disabled-login --disabled-password --group nginx
@@ -321,14 +324,14 @@ if [ "$ghost_num" = "1" ] || [ ! -f /opt/nginx/sbin/nginx ]; then
   wget -t 3 -T 30 -qO- http://nginx.org/download/nginx-1.10.1.tar.gz | tar xz
   [ ! -d nginx-1.10.1 ] && { echoerr "Cannot download Nginx source."; exit 1; }
   cd nginx-1.10.1 || exit 1
-  ./configure --add-module=../naxsi-0.54/naxsi_src/ \
+  ./configure --add-module=../naxsi-0.55.1/naxsi_src/ \
   --prefix=/opt/nginx --user=nginx --group=nginx \
   --with-http_ssl_module --with-http_v2_module --with-http_realip_module
   make -s && make -s install
   
   # Add Naxsi core rules
   mkdir -p /etc/nginx
-  /bin/cp -f /opt/src/naxsi-0.54/naxsi_config/naxsi_core.rules /etc/nginx/
+  /bin/cp -f /opt/src/naxsi-0.55.1/naxsi_config/naxsi_core.rules /etc/nginx/
   
   # Add Naxsi whitelist rules needed for Ghost blog.
   # Ref: https://github.com/nbs-system/naxsi/wiki/whitelists
@@ -363,11 +366,12 @@ BasicRule  wl:1001,1015,1205,1302,1303,1310,1311 "mz:$URL_X:^/ghost/api/v[0-9]+\
 BasicRule  wl:16 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/mail/test/$|BODY";
 BasicRule  wl:2 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/uploads/$|BODY";
 BasicRule  wl:15 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/settings/$|BODY";
+BasicRule  wl:1010,1011 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/slugs/post/\(Untitled\)/$|URL";
 EOF
   
   # Set up NXAPI (Naxsi log parser, whitelist & report generator)
   # Ref: https://github.com/nbs-system/naxsi/tree/master/nxapi
-  cd /opt/src/naxsi-0.54/nxapi/ && python setup.py install
+  cd /opt/src/naxsi-0.55.1/nxapi/ && python setup.py install
   
   # Create the following files to make Nginx autorun:
   

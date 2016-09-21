@@ -119,7 +119,7 @@ if id -u ghost >/dev/null 2>&1; then
     echo "This server may not have enough RAM to install another Ghost blog."
     echo "It is estimated that at least $phymem_req1 MB total RAM is required."
     echo
-    echo 'WARNING! If you continue, the install could fail and your blog will not work!'
+    echo 'WARNING! If you continue, the install could fail and your blog will NOT work!'
     echo
     read -r -p "Do you REALLY want to continue (at your own risk)? [y/N] " response
     case $response in
@@ -138,8 +138,8 @@ fi
 clear
 
 cat <<EOF
-Welcome! This script will install the latest version of Ghost blog (https://ghost.org)
-on your server, with Nginx (as a reverse proxy) and Naxsi web application firewall.
+Welcome! This script will install the latest version of Ghost blog
+on your server, with Nginx and Naxsi web application firewall.
 
 The full domain name for your new blog is:
 
@@ -148,9 +148,10 @@ The full domain name for your new blog is:
 Please double check. This MUST be correct for it to work!
 
 IMPORTANT: DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
-
-This script should ONLY be used on a Virtual Private Server (VPS) or dedicated server,
-with **freshly installed** Ubuntu 16.04/14.04/12.04 or Debian 8.
+This script should ONLY be used on a Virtual Private Server (VPS) or
+dedicated server, with **freshly installed** Ubuntu LTS or Debian 8.
+If your server uses a custom SSH port (not 22), edit the IPTables rules
+in this script before continuing.
 
 EOF
 
@@ -489,14 +490,11 @@ su - ${ghost_user} -s /bin/bash -c 'forever stopall; ./starter.sh'
 To restart Nginx web server:
 service nginx restart
 
-(Optional) Follow additional steps at the link below to:
+(Optional) Check out my blog article for more configuration steps:
 https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/
 
-1. Set up HTTPS for your blog
-2. Sitemap, robots.txt and extras
-3. Setting up e-mail on Ghost
-
-Ghost support: http://support.ghost.org, Real-time chat: https://ghost.org/slack
+Ghost support: http://support.ghost.org
+Real-time chat: https://ghost.org/slack
 Naxsi docs: https://github.com/nbs-system/naxsi/wiki
 
 ==================================================================================

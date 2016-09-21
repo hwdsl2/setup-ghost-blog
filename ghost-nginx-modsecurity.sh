@@ -112,8 +112,8 @@ if id -u ghost >/dev/null 2>&1; then
   phymem_req=250
   let phymem_req1=$phymem_req*$ghost_num
   let phymem_req2=$phymem_req*$ghost_num*1000
-  [ "$ghost_num" = "3" ] && phymem_req1=500
-  [ "$ghost_num" = "3" ] && phymem_req2=500000
+  [ "$ghost_num" = "3" ] && [ ! -f /proc/user_beancounters ] && phymem_req1=500
+  [ "$ghost_num" = "3" ] && [ ! -f /proc/user_beancounters ] && phymem_req2=500000
   
   if [ "$phymem" -lt "$phymem_req2" ]; then
     echo "This server may not have enough RAM to install another Ghost blog."

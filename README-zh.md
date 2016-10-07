@@ -2,7 +2,7 @@
 
 *其他语言版本: [English](README.md), [简体中文](README-zh.md).*
 
-使用 Bash 脚本一键搭建你自己的 <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost 博客平台</a>。为了最佳化性能与安全性，将同时安装 <a href="http://nginx.org/en/" target="_blank">Nginx</a> (作为反向代理)，以及 Web 应用防火墙 <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> 或者 <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a>。
+使用 Bash 脚本一键搭建你自己的 <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost 博客平台</a>。为了最佳化性能与安全性，将同时安装 <a href="http://nginx.org/en/" target="_blank">Nginx</a> (作为反向代理)，以及 Web 应用防火墙 <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> 或者 <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a>。最新的 <a href="https://dev.ghost.org/lts/" target="_blank">v0.11-LTS</a> 版本的 Ghost 博客平台将会被安装。
 
 Ghost 博客是一个简约并且现代的<a href="https://ghost.org/vs/wordpress/" target="_blank"> WordPress 替代品</a>。它设计精美，使用方便，完全开源，并且对所有人都是免费的。
 
@@ -38,7 +38,7 @@ wget https://git.io/ghost-nginx-naxsi -O ghost-nginx-naxsi.sh
 sudo bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 ```
 
-**注：** 请将上面的 `BLOG_FULL_DOMAIN_NAME` 替换为你的博客的完整域名。这些脚本将会自动安装 <a href="https://github.com/TryGhost/Ghost/releases" target="_blank">最新版本</a> （除了 beta）的 Ghost 博客平台。
+**注：** 请将上面的 `BLOG_FULL_DOMAIN_NAME` 替换为你的博客的完整域名。
 
 ## 作者
 

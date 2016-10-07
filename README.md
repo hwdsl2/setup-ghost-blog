@@ -2,7 +2,7 @@
 
 *Read this in other languages: [English](README.md), [简体中文](README-zh.md).*
 
-Scripts to install your own <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost blog(s)</a>, with <a href="http://nginx.org/en/" target="_blank">Nginx</a> (as a reverse proxy) and <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> or <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a> web application firewall for maximum performance and security.
+Scripts to install your own <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost blog</a>, with <a href="http://nginx.org/en/" target="_blank">Nginx</a> (as a reverse proxy) and <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> or <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a> web application firewall for maximum performance and security. The latest <a href="https://dev.ghost.org/lts/" target="_blank">v0.11-LTS</a> version of Ghost blog will be installed.
 
 Ghost blog is a simple, modern <a href="https://ghost.org/vs/wordpress/" target="_blank">WordPress alternative</a> which puts the excitement back into blogging. It's beautifully designed, easy to use, completely open source, and free for everyone.
 
@@ -38,7 +38,7 @@ wget https://git.io/ghost-nginx-naxsi -O ghost-nginx-naxsi.sh
 sudo bash ghost-nginx-naxsi.sh BLOG_FULL_DOMAIN_NAME
 ```
 
-**Note:** Replace `BLOG_FULL_DOMAIN_NAME` above with your actual full domain name. These scripts will automatically install the <a href="https://github.com/TryGhost/Ghost/releases" target="_blank">latest version</a> (excluding beta) of Ghost blog.
+**Note:** Replace `BLOG_FULL_DOMAIN_NAME` above with your actual full domain name.
 
 ## Author
 

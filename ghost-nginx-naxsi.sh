@@ -138,8 +138,8 @@ fi
 clear
 
 cat <<EOF
-Welcome! This script will install the latest version of Ghost blog
-on your server, with Nginx and Naxsi web application firewall.
+Welcome! This script will install the latest v0.11-LTS version of Ghost blog
+on your server, with Nginx (as a reverse proxy) and Naxsi WAF.
 
 The full domain name for your new blog is:
 
@@ -148,6 +148,7 @@ The full domain name for your new blog is:
 Please double check. This MUST be correct for it to work!
 
 IMPORTANT: DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
+
 This script should ONLY be used on a Virtual Private Server (VPS) or
 dedicated server, with **freshly installed** Ubuntu LTS or Debian 8.
 If your server uses a custom SSH port (not 22), edit the IPTables rules
@@ -248,11 +249,10 @@ fi
 cd "/var/www/${BLOG_FQDN}" || exit 1
 sudo -u "$ghost_user" BLOG_FQDN="$BLOG_FQDN" ghost_num="$ghost_num" ghost_port="$ghost_port" HOME="/var/www/$BLOG_FQDN" /bin/bash <<'SU_END'
 
-# Get the Ghost blog source (latest version), unzip and install.
-ghost_url1="https://ghost.org/zip/ghost-latest.zip"
-ghost_rels="https://api.github.com/repos/TryGhost/Ghost/releases"
-ghost_url2="$(wget -t 3 -T 15 -qO- $ghost_rels | grep browser_download_url | grep -i -v -e beta -e alpha | head -n 1 | cut -d '"' -f 4)"
-wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url1" || wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url2"
+# Get the Ghost blog source (latest v0.11-LTS version), unzip and install.
+ghost_releases="https://api.github.com/repos/TryGhost/Ghost/releases"
+ghost_url="$(wget -t 3 -T 15 -qO- $ghost_releases | grep browser_download_url | grep 'Ghost-0\.11\.' | head -n 1 | cut -d '"' -f 4)"
+wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url"
 [ "$?" != "0" ] && { echo "Error: Cannot download Ghost blog source." >&2; exit 1; }
 unzip -o -qq ghost-latest.zip && /bin/rm -f ghost-latest.zip
 npm install --production

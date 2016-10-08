@@ -2,7 +2,7 @@
 
 *其他语言版本: [English](README.md), [简体中文](README-zh.md).*
 
-使用 Bash 脚本一键搭建你自己的 <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost 博客平台</a>。为了最佳化性能与安全性，将同时安装 <a href="http://nginx.org/en/" target="_blank">Nginx</a> (作为反向代理)，以及 Web 应用防火墙 <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> 或者 <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a>。最新的 <a href="https://dev.ghost.org/lts/" target="_blank">v0.11-LTS</a> 版本的 Ghost 博客平台将会被安装。
+使用 Bash 脚本一键搭建你自己的 <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost 博客平台</a>。支持 Ubuntu, Debian 和 CentOS 系统。为了最佳化性能与安全性，将同时安装 <a href="http://nginx.org/en/" target="_blank">Nginx</a> (作为反向代理)，以及 Web 应用防火墙 <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> 或者 <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a>。最新版本的 Ghost 博客平台 (<a href="https://dev.ghost.org/lts/" target="_blank">v0.11-LTS</a>) 将会被安装。
 
 Ghost 博客是一个简约并且现代的<a href="https://ghost.org/vs/wordpress/" target="_blank"> WordPress 替代品</a>。它设计精美，使用方便，完全开源，并且对所有人都是免费的。
 
@@ -15,6 +15,7 @@ Ghost 博客是一个简约并且现代的<a href="https://ghost.org/vs/wordpres
 一个专用服务器或虚拟专用服务器 (VPS)，**全新安装** 以下系统：   
 - Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise)
 - Debian 8 (Jessie)
+- CentOS 6 or 7
 
 **注：** 需要至少 **512 MB** 内存。
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Use this automated bash script to install Ghost blog on Ubuntu or Debian,
+# Use this automated bash script to install Ghost blog on Ubuntu, Debian or CentOS,
 # with Nginx (as a reverse proxy) and Naxsi web application firewall.
 #
 # DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
@@ -27,8 +27,15 @@ echoerr() { echo "Error: ${1}" >&2; }
 
 os_type="$(lsb_release -si 2>/dev/null)"
 if [ "$os_type" != "Ubuntu" ] && [ "$os_type" != "Debian" ]; then
-  echoerr "This script only supports Ubuntu/Debian."
-  exit 1
+  if [ ! -f /etc/redhat-release ]; then
+    echoerr "This script only supports Ubuntu, Debian or CentOS."
+    exit 1
+  elif ! grep -qs -e "release 6" -e "release 7" /etc/redhat-release; then
+    echoerr "This script only supports CentOS version 6 and 7."
+    exit 1
+  else
+    os_type="CentOS"
+  fi
 fi
 
 if [ "$os_type" = "Ubuntu" ]; then
@@ -112,8 +119,8 @@ if id -u ghost >/dev/null 2>&1; then
   phymem_req=250
   let phymem_req1=$phymem_req*$ghost_num
   let phymem_req2=$phymem_req*$ghost_num*1000
-  [ "$ghost_num" = "3" ] && [ ! -f /proc/user_beancounters ] && phymem_req1=500
-  [ "$ghost_num" = "3" ] && [ ! -f /proc/user_beancounters ] && phymem_req2=500000
+  # [ "$ghost_num" = "3" ] && [ ! -f /proc/user_beancounters ] && phymem_req1=500
+  # [ "$ghost_num" = "3" ] && [ ! -f /proc/user_beancounters ] && phymem_req2=500000
   
   if [ "$phymem" -lt "$phymem_req2" ]; then
     echo "This server may not have enough RAM to install another Ghost blog."
@@ -149,10 +156,8 @@ Please double check. This MUST be correct for it to work!
 
 IMPORTANT: DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
 
-This script should ONLY be used on a Virtual Private Server (VPS) or
-dedicated server, with **freshly installed** Ubuntu LTS or Debian 8.
-If your server uses a custom SSH port (not 22), edit the IPTables rules
-in this script before continuing.
+This script should ONLY be used on a Virtual Private Server (VPS) or dedicated server,
+with *freshly installed* Ubuntu 16.04/14.04/12.04, Debian 8 or CentOS 6/7.
 
 EOF
 
@@ -175,53 +180,84 @@ BLOG_FQDN=$1
 mkdir -p /opt/src
 cd /opt/src || exit 1
 
-# Update package index
-export DEBIAN_FRONTEND=noninteractive
-apt-get -yq update || { echoerr "'apt-get update' failed."; exit 1; }
+if [ "$os_type" = "CentOS" ]; then
 
-# We need some more software
-apt-get -yq install unzip fail2ban iptables-persistent \
-  build-essential apache2-dev libxml2-dev wget curl sudo \
-  libcurl4-openssl-dev libpcre3-dev libssl-dev || { echoerr "'apt-get install' failed."; exit 1; }
+  # Add the EPEL repository
+  yum -y install epel-release || { echoerr "Cannot add EPEL repo."; exit 1; }
 
-# Create new iptables configuration
-# Make those rules persistent using the package "iptables-persistent".
-/bin/cp -f /etc/iptables/rules.v4 /etc/iptables/rules.v4.old
-service iptables-persistent start 2>/dev/null
-service netfilter-persistent start 2>/dev/null
-iptables -P INPUT ACCEPT
-iptables -P FORWARD ACCEPT
-iptables -P OUTPUT ACCEPT
-iptables -F
-iptables -X
-iptables -t nat -F
-iptables -t nat -X
-iptables -t raw -F
-iptables -t raw -X
-iptables -t mangle -F
-iptables -t mangle -X
-iptables -A INPUT -m conntrack --ctstate INVALID -j DROP
-iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-iptables -A INPUT -i lo -j ACCEPT
-iptables -A INPUT -d 127.0.0.0/8 -j REJECT
-iptables -A INPUT -p icmp -j ACCEPT
-# Allow DHCP traffic
-iptables -A INPUT -p udp --dport 67:68 --sport 67:68 -j ACCEPT
-iptables -A INPUT -p tcp --dport 22 -j ACCEPT
-iptables -A INPUT -p tcp --dport 80 -j ACCEPT
-iptables -A INPUT -p tcp --dport 443 -j ACCEPT
-iptables -A INPUT -j DROP
-iptables -A FORWARD -j DROP
-service fail2ban stop
-/etc/init.d/iptables-persistent save 2>/dev/null
-netfilter-persistent save 2>/dev/null
+  # We need some more software
+  yum -y install unzip fail2ban gcc gcc-c++ make openssl-devel \
+    wget curl sudo libxml2-devel curl-devel httpd-devel pcre-devel \
+    || { echoerr "'yum install' failed."; exit 1; }
+
+  # Create basic Fail2Ban rules
+  if [ ! -f /etc/fail2ban/jail.local ] ; then
+cat > /etc/fail2ban/jail.local <<'EOF'
+[DEFAULT]
+ignoreip = 127.0.0.1/8
+bantime  = 600
+findtime  = 600
+maxretry = 5
+backend = auto
+
+[ssh-iptables]
+enabled  = true
+filter   = sshd
+action   = iptables[name=SSH, port=ssh, protocol=tcp]
+logpath  = /var/log/secure
+EOF
+  fi
+
+else
+
+  # Update package index
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get -yq update || { echoerr "'apt-get update' failed."; exit 1; }
+
+  # We need some more software
+  apt-get -yq install unzip fail2ban \
+    build-essential apache2-dev libxml2-dev wget curl sudo \
+    libcurl4-openssl-dev libpcre3-dev libssl-dev \
+    || { echoerr "'apt-get install' failed."; exit 1; }
+
+fi
+
+# Insert required IPTables rules
+iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+
+# Start Fail2ban
+service fail2ban stop >/dev/null 2>&1
 service fail2ban start
 
+# Insert IPTables rules at boot
+if ! grep -qs "ghost blog setup script" /etc/rc.local; then
+  if [ "$os_type" != "CentOS" ]; then
+    sed --follow-symlinks -i -e '/^exit 0/d' /etc/rc.local
+  fi
+cat >> /etc/rc.local <<'EOF'
+
+# Added by ghost blog setup script
+iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+service fail2ban restart
+EOF
+  if [ "$os_type" != "CentOS" ]; then
+    echo "exit 0" >> /etc/rc.local
+  fi
+chmod +x /etc/rc.local
+fi
+
 # Next, we need to install Node.js.
-# Ref: https://github.com/nodesource/distributions#debinstall
+# Ref: https://github.com/nodesource/distributions
 if [ "$ghost_num" = "1" ] || [ ! -f /usr/bin/node ]; then
-  curl -sL https://deb.nodesource.com/setup_4.x | bash -
-  apt-get -yq install nodejs || { echoerr "Failed to install 'nodejs'."; exit 1; }
+  if [ "$os_type" = "CentOS" ]; then
+    curl -sL https://rpm.nodesource.com/setup_4.x | bash -
+    yum -y --disablerepo=epel install nodejs || { echoerr "Failed to install 'nodejs'."; exit 1; }
+  else
+    curl -sL https://deb.nodesource.com/setup_4.x | bash -
+    apt-get -yq install nodejs || { echoerr "Failed to install 'nodejs'."; exit 1; }
+  fi
 fi
 
 # To keep your Ghost blog running, install "forever".
@@ -242,7 +278,7 @@ if [ ! -f /proc/user_beancounters ]; then
   echo "Creating temporary swap file, please wait ..."
   echo
   dd if=/dev/zero of="$swap_tmp" bs=1M count=512 2>/dev/null || /bin/rm -f "$swap_tmp"
-  chmod 600 "$swap_tmp" && mkswap "$swap_tmp" >/dev/null && swapon "$swap_tmp"
+  chmod 600 "$swap_tmp" && mkswap "$swap_tmp" &>/dev/null && swapon "$swap_tmp"
 fi
 
 # Switch to Ghost blog user. We use a "here document" to run multiple commands as this user.
@@ -318,7 +354,11 @@ if [ "$ghost_num" = "1" ] || [ ! -f /opt/nginx/sbin/nginx ]; then
   sed -i -e 's/127\.0\.0\.1:443/127.0.0.1:9200/' -e '/use_ssl/s/"True"/false/' naxsi-0.55.1/nxapi/nxapi.json
   
   # Next we create a user for nginx:
-  adduser --system --no-create-home --disabled-login --disabled-password --group nginx
+  if [ "$os_type" != "CentOS" ]; then
+    adduser --system --no-create-home --disabled-login --disabled-password --group nginx
+  else
+    useradd --system --no-create-home -s /bin/false -U nginx
+  fi
   
   # Download and compile Nginx:
   cd /opt/src || exit 1
@@ -376,6 +416,8 @@ EOF
   
   # Create the following files to make Nginx autorun:
   
+  if [ -d /etc/init ] && [ "$os_type" != "CentOS" ]; then
+
 cat > /etc/init/nginx.conf <<'EOF'
 # nginx
 description "nginx http daemon"
@@ -396,6 +438,145 @@ fi
 end script
 exec $DAEMON
 EOF
+
+  fi
+
+  if grep -qs "release 6" /etc/redhat-release; then
+
+# Ref: https://www.nginx.com/resources/wiki/start/topics/examples/redhatnginxinit/
+cat > /etc/init.d/nginx <<'EOF'
+#!/bin/sh
+#
+# nginx - this script starts and stops the nginx daemon
+#
+# chkconfig:   - 85 15
+# description:  NGINX is an HTTP(S) server, HTTP(S) reverse \
+#               proxy and IMAP/POP3 proxy server
+# processname: nginx
+# config:      /opt/nginx/conf/nginx.conf
+# pidfile:     /var/run/nginx.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ "$NETWORKING" = "no" ] && exit 0
+
+nginx="/opt/nginx/sbin/nginx"
+prog=$(basename $nginx)
+
+NGINX_CONF_FILE="/opt/nginx/conf/nginx.conf"
+
+[ -f /etc/sysconfig/nginx ] && . /etc/sysconfig/nginx
+
+lockfile=/var/lock/subsys/nginx
+
+make_dirs() {
+   # make required directories
+   user=`$nginx -V 2>&1 | grep "configure arguments:" | sed 's/[^*]*--user=\([^ ]*\).*/\1/g' -`
+   if [ -z "`grep $user /etc/passwd`" ]; then
+       useradd -M -s /bin/nologin $user
+   fi
+   options=`$nginx -V 2>&1 | grep 'configure arguments:'`
+   for opt in $options; do
+       if [ `echo $opt | grep '.*-temp-path'` ]; then
+           value=`echo $opt | cut -d "=" -f 2`
+           if [ ! -d "$value" ]; then
+               # echo "creating" $value
+               mkdir -p $value && chown -R $user $value
+           fi
+       fi
+   done
+}
+
+start() {
+    [ -x $nginx ] || exit 5
+    [ -f $NGINX_CONF_FILE ] || exit 6
+    make_dirs
+    echo -n $"Starting $prog: "
+    daemon $nginx -c $NGINX_CONF_FILE
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && touch $lockfile
+    return $retval
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc $prog -QUIT
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile
+    return $retval
+}
+
+restart() {
+    configtest || return $?
+    stop
+    sleep 1
+    start
+}
+
+reload() {
+    configtest || return $?
+    echo -n $"Reloading $prog: "
+    killproc $nginx -HUP
+    RETVAL=$?
+    echo
+}
+
+force_reload() {
+    restart
+}
+
+configtest() {
+  $nginx -t -c $NGINX_CONF_FILE
+}
+
+rh_status() {
+    status $prog
+}
+
+rh_status_q() {
+    rh_status >/dev/null 2>&1
+}
+
+case "$1" in
+    start)
+        rh_status_q && exit 0
+        $1
+        ;;
+    stop)
+        rh_status_q || exit 0
+        $1
+        ;;
+    restart|configtest)
+        $1
+        ;;
+    reload)
+        rh_status_q || exit 7
+        $1
+        ;;
+    force-reload)
+        force_reload
+        ;;
+    status)
+        rh_status
+        ;;
+    condrestart|try-restart)
+        rh_status_q || exit 0
+            ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart|try-restart|reload|force-reload|configtest}"
+        exit 2
+esac
+EOF
+  chmod +x /etc/init.d/nginx
+
+  fi
   
   if [ -d /lib/systemd/system ]; then
     
@@ -461,7 +642,8 @@ echo; /opt/nginx/sbin/nginx -t; echo
 
 # Finally, start Ghost blog and Nginx:
 su - "$ghost_user" -s /bin/bash -c "./starter.sh"
-service nginx restart
+service nginx stop 2>/dev/null
+service nginx start
 
 # Retrieve server IP for display below
 PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://whatismyip.akamai.com)

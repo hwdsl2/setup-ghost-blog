@@ -2,7 +2,7 @@
 
 *Read this in other languages: [English](README.md), [简体中文](README-zh.md).*
 
-Scripts to install your own <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost blog</a>, with <a href="http://nginx.org/en/" target="_blank">Nginx</a> (as a reverse proxy) and <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> or <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a> web application firewall for maximum performance and security. The latest <a href="https://dev.ghost.org/lts/" target="_blank">v0.11-LTS</a> version of Ghost blog will be installed.
+Scripts to install your own <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost blog</a> on Ubuntu, Debian or CentOS, with <a href="http://nginx.org/en/" target="_blank">Nginx</a> (as a reverse proxy) and <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> or <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a> web application firewall for maximum performance and security. The latest version of Ghost blog (<a href="https://dev.ghost.org/lts/" target="_blank">v0.11-LTS</a>) will be installed.
 
 Ghost blog is a simple, modern <a href="https://ghost.org/vs/wordpress/" target="_blank">WordPress alternative</a> which puts the excitement back into blogging. It's beautifully designed, easy to use, completely open source, and free for everyone.
 
@@ -15,6 +15,7 @@ Ghost blog is a simple, modern <a href="https://ghost.org/vs/wordpress/" target=
 A dedicated server or Virtual Private Server (VPS), **freshly installed** with:   
 - Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise)
 - Debian 8 (Jessie)
+- CentOS 6 or 7
 
 **Note:** A minimum of **512 MB** RAM is required.
 

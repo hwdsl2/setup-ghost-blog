@@ -28,10 +28,10 @@ echoerr() { echo "Error: ${1}" >&2; }
 os_type="$(lsb_release -si 2>/dev/null)"
 if [ "$os_type" != "Ubuntu" ] && [ "$os_type" != "Debian" ]; then
   if [ ! -f /etc/redhat-release ]; then
-    echoerr "This script only supports Ubuntu, Debian or CentOS."
+    echoerr "This script only supports Ubuntu, Debian and CentOS."
     exit 1
   elif ! grep -qs -e "release 6" -e "release 7" /etc/redhat-release; then
-    echoerr "This script only supports CentOS version 6 and 7."
+    echoerr "This script only supports CentOS 6 and 7."
     exit 1
   else
     os_type="CentOS"
@@ -223,8 +223,12 @@ else
 fi
 
 # Insert required IPTables rules
-iptables -I INPUT -p tcp --dport 80 -j ACCEPT
-iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+if ! iptables -C INPUT -p tcp --dport 80 -j ACCEPT 2>/dev/null; then
+  iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+fi
+if ! iptables -C INPUT -p tcp --dport 443 -j ACCEPT 2>/dev/null; then
+  iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+fi
 
 # Start Fail2ban
 service fail2ban stop >/dev/null 2>&1
@@ -582,6 +586,7 @@ case "$1" in
 esac
 EOF
   chmod +x /etc/init.d/nginx
+  chkconfig nginx on
 
   fi
   

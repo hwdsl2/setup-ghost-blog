@@ -652,6 +652,9 @@ echo; /opt/nginx/sbin/nginx -t; echo
 # nginx: the configuration file /opt/nginx/conf/nginx.conf syntax is ok
 # nginx: configuration file /opt/nginx/conf/nginx.conf test is successful
 
+# Make sure Nginx can access the blog files
+chmod 755 "/var/www/${BLOG_FQDN}"
+
 # Finally, start Ghost blog and Nginx:
 su - "$ghost_user" -s /bin/bash -c "./starter.sh"
 service nginx stop 2>/dev/null

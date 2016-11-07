@@ -23,7 +23,7 @@ max_blogs=10
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
-echoerr() { echo "Error: ${1}" >&2; }
+echoerr() { echo "Error: $1" >&2; }
 
 os_type="$(lsb_release -si 2>/dev/null)"
 if [ "$os_type" != "Ubuntu" ] && [ "$os_type" != "Debian" ]; then
@@ -78,8 +78,8 @@ if ! printf %s "$1" | grep -Eq "$FQDN_REGEX"; then
   exit 1
 fi
 
-if id -u "ghost${max_blogs}" >/dev/null 2>&1; then
-  echoerr "Maximum number of Ghost blogs (${max_blogs}) reached."
+if id -u "ghost$max_blogs" >/dev/null 2>&1; then
+  echoerr "Maximum number of Ghost blogs ($max_blogs) reached."
   exit 1
 fi
 
@@ -94,10 +94,10 @@ if id -u ghost >/dev/null 2>&1; then
     exit 1
   fi
   
-  for count in $(seq 2 ${max_blogs}); do
-    if ! id -u "ghost${count}" >/dev/null 2>&1; then
-      ghost_num="${count}"
-      ghost_user="ghost${count}"
+  for count in $(seq 2 $max_blogs); do
+    if ! id -u "ghost$count" >/dev/null 2>&1; then
+      ghost_num="$count"
+      ghost_user="ghost$count"
       let ghost_port=$ghost_port+$count
       let ghost_port=$ghost_port-1
       break
@@ -269,7 +269,7 @@ npm install forever -g
 
 # Create a user to run Ghost:
 mkdir -p /var/www
-useradd -d "/var/www/${BLOG_FQDN}" -m -s /bin/false "$ghost_user"
+useradd -d "/var/www/$BLOG_FQDN" -m -s /bin/false "$ghost_user"
 
 # Stop running Ghost blog processes, if any.
 su - "$ghost_user" -s /bin/bash -c "forever stopall"
@@ -286,21 +286,23 @@ if [ ! -f /proc/user_beancounters ]; then
 fi
 
 # Switch to Ghost blog user. We use a "here document" to run multiple commands as this user.
-cd "/var/www/${BLOG_FQDN}" || exit 1
+cd "/var/www/$BLOG_FQDN" || exit 1
 sudo -u "$ghost_user" BLOG_FQDN="$BLOG_FQDN" ghost_num="$ghost_num" ghost_port="$ghost_port" HOME="/var/www/$BLOG_FQDN" /bin/bash <<'SU_END'
 
 # Get the Ghost blog source (latest v0.11-LTS version), unzip and install.
 ghost_releases="https://api.github.com/repos/TryGhost/Ghost/releases"
 ghost_url="$(wget -t 3 -T 15 -qO- $ghost_releases | grep browser_download_url | grep 'Ghost-0\.11\.' | head -n 1 | cut -d '"' -f 4)"
-wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url"
-[ "$?" != "0" ] && { echo "Error: Cannot download Ghost blog source." >&2; exit 1; }
+if ! wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url"; then
+  echo "Error: Cannot download Ghost blog source." >&2
+  exit 1
+fi
 unzip -o -qq ghost-latest.zip && /bin/rm -f ghost-latest.zip
 npm install --production
 
 # Generate config file and make sure that Ghost uses your actual domain name
 /bin/cp -f config.js config.js.old 2>/dev/null
-sed "s/my-ghost-blog.com/${BLOG_FQDN}/" <config.example.js >config.js
-sed -i "s/port: '2368'/port: '${ghost_port}'/" config.js
+sed "s/my-ghost-blog.com/$BLOG_FQDN/" <config.example.js >config.js
+sed -i "s/port: '2368'/port: '$ghost_port'/" config.js
 
 # We need to make certain that Ghost will start automatically after a reboot
 cat > starter.sh <<'EOF'
@@ -316,11 +318,11 @@ fi
 EOF
 
 # Replace placeholder with your actual domain name:
-sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/" starter.sh
+sed -i "s/YOUR.DOMAIN.NAME/$BLOG_FQDN/" starter.sh
 
 if [ "$ghost_num" != "1" ]; then
-  sed -i "/^pgrep/s/ghost/ghost${ghost_num}/" starter.sh
-  sed -i "s/nodelog\.txt/nodelog${ghost_num}.txt/" starter.sh
+  sed -i "/^pgrep/s/ghost/ghost$ghost_num/" starter.sh
+  sed -i "s/nodelog\.txt/nodelog$ghost_num.txt/" starter.sh
 fi
 
 # Make the script executable with:
@@ -328,7 +330,7 @@ chmod +x starter.sh
 
 # We use crontab to start this script after a reboot:
 crontab -r 2>/dev/null
-crontab -l 2>/dev/null | { cat; echo "@reboot /var/www/${BLOG_FQDN}/starter.sh"; } | crontab -
+crontab -l 2>/dev/null | { cat; echo "@reboot /var/www/$BLOG_FQDN/starter.sh"; } | crontab -
 
 SU_END
 
@@ -336,15 +338,15 @@ SU_END
 [ -f "$swap_tmp" ] && swapoff "$swap_tmp" && /bin/rm -f "$swap_tmp"
 
 # Check if Ghost blog download was successful
-[ ! -f "/var/www/${BLOG_FQDN}/index.js" ] && exit 1
+[ ! -f "/var/www/$BLOG_FQDN/index.js" ] && exit 1
 
 # Create the logfile:
 if [ "$ghost_num" = "1" ]; then
   touch /var/log/nodelog.txt
   chown ghost.ghost /var/log/nodelog.txt
 else
-  touch "/var/log/nodelog${ghost_num}.txt"
-  chown "ghost${ghost_num}.ghost${ghost_num}" "/var/log/nodelog${ghost_num}.txt"
+  touch "/var/log/nodelog$ghost_num.txt"
+  chown "ghost$ghost_num.ghost$ghost_num" "/var/log/nodelog$ghost_num.txt"
 fi
 
 if [ "$ghost_num" = "1" ] || [ ! -f /opt/nginx/sbin/nginx ]; then
@@ -611,31 +613,35 @@ EOF
 fi
 
 # Create the public folder which will hold robots.txt, etc.
-mkdir -p "/var/www/${BLOG_FQDN}/public"
+mkdir -p "/var/www/$BLOG_FQDN/public"
 
 # Download example Nginx configuration file
 cd /opt/nginx/conf || exit 1
 /bin/cp -f nginx.conf nginx.conf.old
 if [ "$ghost_num" = "1" ]; then
   example_conf1=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-naxsi.conf
-  wget -t 3 -T 30 -nv -O nginx.conf "$example_conf1"
-  [ "$?" != "0" ] && { echoerr "Cannot download example nginx.conf."; exit 1; }
+  if ! wget -t 3 -T 30 -nv -O nginx.conf "$example_conf1"; then
+    echoerr "Cannot download example nginx.conf."
+    exit 1
+  fi
 fi
 
 example_conf2=https://github.com/hwdsl2/setup-ghost-blog/raw/master/conf/nginx-naxsi-include.conf
-wget -t 3 -T 30 -nv -O nginx-include.conf "$example_conf2"
-[ "$?" != "0" ] && { echoerr "Cannot download example nginx-include.conf."; exit 1; }
+if ! wget -t 3 -T 30 -nv -O nginx-include.conf "$example_conf2"; then
+  echoerr "Cannot download example nginx-include.conf."
+  exit 1
+fi
 
 # Modify example configuration for use
 if [ "$ghost_num" = "1" ]; then
   /bin/cp -f nginx-include.conf nginx-blog1.conf
-  sed -i "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" nginx-blog1.conf
+  sed -i "s/YOUR.DOMAIN.NAME/$BLOG_FQDN/g" nginx-blog1.conf
 else
-  /bin/cp -f nginx-include.conf "nginx-blog${ghost_num}.conf"
-  sed -i -e "/127\.0\.0\.1:2368/s/2368/${ghost_port}/" \
-  -e "s/ghost_upstream/ghost_upstream${ghost_num}/" \
-  -e "s/YOUR.DOMAIN.NAME/${BLOG_FQDN}/g" "nginx-blog${ghost_num}.conf"
-  sed -i "/include nginx-blog1\.conf/a\    include nginx-blog${ghost_num}.conf;" nginx.conf
+  /bin/cp -f nginx-include.conf "nginx-blog$ghost_num.conf"
+  sed -i -e "/127\.0\.0\.1:2368/s/2368/$ghost_port/" \
+  -e "s/ghost_upstream/ghost_upstream$ghost_num/" \
+  -e "s/YOUR.DOMAIN.NAME/$BLOG_FQDN/g" "nginx-blog$ghost_num.conf"
+  sed -i "/include nginx-blog1\.conf/a\    include nginx-blog$ghost_num.conf;" nginx.conf
 fi
 
 # Check the validity of the nginx.conf file:
@@ -646,7 +652,7 @@ echo; /opt/nginx/sbin/nginx -t; echo
 # nginx: configuration file /opt/nginx/conf/nginx.conf test is successful
 
 # Make sure Nginx can access the blog files
-chmod 755 "/var/www/${BLOG_FQDN}"
+chmod 755 "/var/www/$BLOG_FQDN"
 
 # Finally, start Ghost blog and Nginx:
 su - "$ghost_user" -s /bin/bash -c "./starter.sh"
@@ -654,7 +660,7 @@ service nginx stop 2>/dev/null
 service nginx start
 
 # Retrieve server IP for display below
-PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://whatismyip.akamai.com)
+PUBLIC_IP=$(wget -t 3 -T 15 -qO- http://ipv4.icanhazip.com)
 
 cat <<EOF
 
@@ -662,20 +668,20 @@ cat <<EOF
 
 Setup is complete. Your new Ghost blog is now ready for use!
 
-Ghost blog is installed in: /var/www/${BLOG_FQDN}
+Ghost blog is installed in: /var/www/$BLOG_FQDN
 Naxsi and Nginx config files: /etc/nginx and /opt/nginx/conf
 Nginx web server logs: /opt/nginx/logs
 
 [Next Steps]
 
-You must set up DNS (A Record) to point ${BLOG_FQDN} to this server ${PUBLIC_IP}
+You must set up DNS (A Record) to point $BLOG_FQDN to this server $PUBLIC_IP
 
-Browse to http://${BLOG_FQDN}/ghost (alternatively, set up SSH port forwarding
-and browse to http://localhost:${ghost_port}/ghost) to complete the initial configuration
+Browse to http://$BLOG_FQDN/ghost (alternatively, set up SSH port forwarding
+and browse to http://localhost:$ghost_port/ghost) to complete the initial configuration
 of your blog. Choose a very secure password.
 
 To restart this Ghost blog:
-su - ${ghost_user} -s /bin/bash -c 'forever stopall; ./starter.sh'
+su - $ghost_user -s /bin/bash -c 'forever stopall; ./starter.sh'
 
 To restart Nginx web server:
 service nginx restart

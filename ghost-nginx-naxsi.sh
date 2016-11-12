@@ -257,6 +257,7 @@ fi
 if [ "$ghost_num" = "1" ] || [ ! -f /usr/bin/node ]; then
   if [ "$os_type" = "CentOS" ]; then
     curl -sL https://rpm.nodesource.com/setup_4.x | bash -
+    sed -i '/gpgkey/a exclude=nodejs' /etc/yum.repos.d/epel.repo
     yum -y --disablerepo=epel install nodejs || { echoerr "Failed to install 'nodejs'."; exit 1; }
   else
     curl -sL https://deb.nodesource.com/setup_4.x | bash -

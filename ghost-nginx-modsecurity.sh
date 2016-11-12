@@ -389,11 +389,12 @@ if [ "$ghost_num" = "1" ] || [ ! -f /opt/nginx/sbin/nginx ]; then
   # We need some more rules for ModSecurity:
   mod_conf1="modsecurity_crs_41_xss_attacks.conf"
   mod_conf2="modsecurity_crs_41_sql_injection_attacks.conf"
-  if ! wget -t 3 -T 30 -nv -O "$mod_conf1" "https://raw.githubusercontent.com/SpiderLabs/owasp-modsecurity-crs/master/base_rules/$mod_conf1"; then
+  mod_baseurl="https://raw.githubusercontent.com/SpiderLabs/owasp-modsecurity-crs/v2.2/master/base_rules"
+  if ! wget -t 3 -T 30 -nv -O "$mod_conf1" "$mod_baseurl/$mod_conf1"; then
     echoerr "Cannot download $mod_conf1."
     exit 1
   fi
-  if ! wget -t 3 -T 30 -nv -O "$mod_conf2" "https://raw.githubusercontent.com/SpiderLabs/owasp-modsecurity-crs/master/base_rules/$mod_conf2"; then
+  if ! wget -t 3 -T 30 -nv -O "$mod_conf2" "$mod_baseurl/$mod_conf2"; then
     echoerr "Cannot download $mod_conf2."
     exit 1
   fi

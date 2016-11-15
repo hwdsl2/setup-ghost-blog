@@ -415,6 +415,7 @@ BasicRule  wl:16 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/mail/test/$|BODY";
 BasicRule  wl:2 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/uploads/$|BODY";
 BasicRule  wl:15,1101 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/settings/$|BODY";
 BasicRule  wl:1010,1011 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/slugs/post/\(Untitled\)/$|URL";
+BasicRule  wl:0 "mz:$URL_X:^/ghost/api/v[0-9]+\.[0-9]+/users/password/$|BODY";
 EOF
   
   # Set up NXAPI (Naxsi log parser, whitelist & report generator)

@@ -26,7 +26,19 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 echoerr() { echo "Error: $1" >&2; }
 
 os_type="$(lsb_release -si 2>/dev/null)"
-if [ "$os_type" != "Ubuntu" ] && [ "$os_type" != "Debian" ]; then
+if [ "$os_type" = "Ubuntu" ]; then
+  os_ver="$(lsb_release -sr)"
+  if [ "$os_ver" != "16.04" ] && [ "$os_ver" != "14.04" ] && [ "$os_ver" != "12.04" ]; then
+    echoerr "This script only supports Ubuntu 16.04/14.04/12.04."
+    exit 1
+  fi
+elif [ "$os_type" = "Debian" ]; then
+  os_ver="$(sed 's/\..*//' /etc/debian_version 2>/dev/null)"
+  if [ "$os_ver" != "8" ]; then
+    echoerr "This script only supports Debian 8 (Jessie)."
+    exit 1
+  fi
+else
   if [ ! -f /etc/redhat-release ]; then
     echoerr "This script only supports Ubuntu, Debian and CentOS."
     exit 1
@@ -35,22 +47,6 @@ if [ "$os_type" != "Ubuntu" ] && [ "$os_type" != "Debian" ]; then
     exit 1
   else
     os_type="CentOS"
-  fi
-fi
-
-if [ "$os_type" = "Ubuntu" ]; then
-  os_ver="$(lsb_release -sr)"
-  if [ "$os_ver" != "16.04" ] && [ "$os_ver" != "14.04" ] && [ "$os_ver" != "12.04" ]; then
-    echoerr "This script only supports Ubuntu 16.04/14.04/12.04."
-    exit 1
-  fi
-fi
-
-if [ "$os_type" = "Debian" ]; then
-  os_ver="$(sed 's/\..*//' /etc/debian_version 2>/dev/null)"
-  if [ "$os_ver" != "8" ]; then
-    echoerr "This script only supports Debian 8 (Jessie)."
-    exit 1
   fi
 fi
 
@@ -119,11 +115,9 @@ if id -u ghost >/dev/null 2>&1; then
   phymem_req=250
   let phymem_req1=$phymem_req*$ghost_num
   let phymem_req2=$phymem_req*$ghost_num*1000
-  # [ "$ghost_num" = "3" ] && [ ! -f /proc/user_beancounters ] && phymem_req1=500
-  # [ "$ghost_num" = "3" ] && [ ! -f /proc/user_beancounters ] && phymem_req2=500000
   
   if [ "$phymem" -lt "$phymem_req2" ]; then
-    echo "This server may not have enough RAM to install another Ghost blog."
+    echo "This server might not have enough RAM to install another Ghost blog."
     echo "It is estimated that at least $phymem_req1 MB total RAM is required."
     echo
     echo 'WARNING! If you continue, the install could fail and your blog will NOT work!'
@@ -193,13 +187,6 @@ if [ "$os_type" = "CentOS" ]; then
   # Create basic Fail2Ban rules
   if [ ! -f /etc/fail2ban/jail.local ] ; then
 cat > /etc/fail2ban/jail.local <<'EOF'
-[DEFAULT]
-ignoreip = 127.0.0.1/8
-bantime  = 600
-findtime  = 600
-maxretry = 5
-backend = auto
-
 [ssh-iptables]
 enabled  = true
 filter   = sshd

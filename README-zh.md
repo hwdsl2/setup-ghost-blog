@@ -1,12 +1,12 @@
-﻿# Ghost 博客平台一键安装脚本 &nbsp;[![Build Status](https://static.ls20.com/travis-ci/setup-ghost-blog.svg)](https://travis-ci.org/hwdsl2/setup-ghost-blog)
+﻿# Ghost 博客平台一键安装脚本 &nbsp;[![Build Status](https://travis-ci.org/hwdsl2/setup-ghost-blog.svg?branch=master)](https://travis-ci.org/hwdsl2/setup-ghost-blog)
 
 *其他语言版本: [English](README.md), [简体中文](README-zh.md).*
 
-使用 Bash 脚本一键搭建你自己的 <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost 博客平台</a>。支持 Ubuntu, Debian 和 CentOS 系统。为了最佳化性能与安全性，将同时安装 <a href="http://nginx.org/en/" target="_blank">Nginx</a> (作为反向代理)，以及 Web 应用防火墙 <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> 或者 <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a>。
+使用 Linux 脚本一键搭建你自己的 <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost 博客平台</a>。支持 Ubuntu, Debian 和 CentOS 系统。为了提高性能与安全性，将同时安装 <a href="http://nginx.org/en/" target="_blank">Nginx</a> (作为反向代理)，以及 Web 应用防火墙 <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> 或者 <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a>。
 
-Ghost 博客是一个简约并且现代的<a href="https://ghost.org/vs/wordpress/" target="_blank"> WordPress 替代品</a>。它设计精美，使用方便，完全开源，并且对所有人都是免费的。
+基于 Node.js 技术构建，Ghost 博客是一个简约并且现代的<a href="https://ghost.org/vs/wordpress/" target="_blank"> WordPress 替代品</a>。它设计精美，使用方便，完全开源，并且对所有人都是免费的。
 
-**新：** 在同一台服务器上安装 **最多 10 个博客**！只需再次运行脚本，并指定新的完整域名作为参数。
+**新：** 在同一台服务器上安装 **多个博客**！只需再次运行脚本，并指定新的完整域名作为参数。
 
 <a href="https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/" target="_blank">**&raquo; 相关教程： Ghost Blog Auto Setup with Nginx and ModSecurity**</a> <a href="https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/" target="_blank">**(or Naxsi)**</a>
 
@@ -41,16 +41,9 @@ sudo bash ghost-setup.sh BLOG_FULL_DOMAIN_NAME
 
 **注：** 请将上面的 `BLOG_FULL_DOMAIN_NAME` 替换为你的博客的完整域名。将自动安装最新的 <a href="https://dev.ghost.org/lts/" target="_blank">v0.11-LTS</a> 版本的 Ghost 博客。
 
-## 作者
-
-**Lin Song** (linsongui@gmail.com)   
-- 最后一年的美国在读博士生，专业是电子与计算机工程 (ECE)
-- 现在正在积极寻找新的工作机会，比如软件或系统工程师
-- 在 LinkedIn 上与我联系： <a href="https://www.linkedin.com/in/linsongui" target="_blank">https://www.linkedin.com/in/linsongui</a>
-
 ## 授权协议
 
-版权所有 (C) 2015-2016&nbsp;Lin Song&nbsp;&nbsp;&nbsp;<a href="https://www.linkedin.com/in/linsongui" target="_blank"><img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_viewmy_160x25.png" width="160" height="25" border="0" alt="View my profile on LinkedIn"></a>    
+版权所有 (C) 2015-2016 <a href="https://www.linkedin.com/in/linsongui" target="_blank">Lin Song</a> <a href="https://www.linkedin.com/in/linsongui" target="_blank"><img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_viewmy_160x25.png" width="160" height="25" border="0" alt="View my profile on LinkedIn"></a>   
 基于 <a href="https://blog.igbuend.com/dude-looks-like-a-ghost/" target="_blank">Herman Stevens 的工作</a> （版权所有 2013）
 
 特别感谢 <a href="https://raymii.org" target="_blank">Remy van Elst</a> 和 <a href="https://philio.me" target="_blank">Phil Bayfield</a> 提供有益的建议。

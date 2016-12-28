@@ -27,4 +27,9 @@ script:
  - cat /var/www/blog1.example.com/.forever/*log
  - cat /var/www/blog2.example.com/.forever/*log
  - cat /var/www/blog3.example.com/.forever/*log
+ - cat /opt/nginx/logs/access.log
  - cat /opt/nginx/logs/error.log
+
+notifications:
+  email:
+    - linsongui@gmail.com

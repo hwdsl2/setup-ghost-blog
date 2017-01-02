@@ -14,6 +14,7 @@ env:
   - TEST_SUITE=naxsi
 
 script:
+ - export SHELLCHECK_OPTS="-e SC1091"
  - shellcheck *.sh
  - sudo rm -f /etc/profile.d/nvm.sh
  - sudo sed -i "/debian unstable/d" /etc/apt/sources.list

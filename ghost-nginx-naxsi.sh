@@ -26,8 +26,12 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 echoerr() { echo "Error: $1" >&2; }
 
 os_type="$(lsb_release -si 2>/dev/null)"
+os_ver="$(lsb_release -sr 2>/dev/null)"
+if [ -z "$os_type" ] && [ -f "/etc/lsb-release" ]; then
+  os_type="$(. /etc/lsb-release && echo "$DISTRIB_ID")"
+  os_ver="$(. /etc/lsb-release && echo "$DISTRIB_RELEASE")"
+fi
 if [ "$os_type" = "Ubuntu" ]; then
-  os_ver="$(lsb_release -sr)"
   if [ "$os_ver" != "16.04" ] && [ "$os_ver" != "14.04" ] && [ "$os_ver" != "12.04" ]; then
     echoerr "This script only supports Ubuntu 16.04/14.04/12.04."
     exit 1

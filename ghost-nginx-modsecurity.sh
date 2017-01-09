@@ -72,7 +72,7 @@ if [ "$1" = "" ] || [ "$1" = "BLOG_FULL_DOMAIN_NAME" ]; then
   exit 1
 fi
 
-FQDN_REGEX='^(([a-zA-Z](-?[a-zA-Z0-9])*)\.)*[a-zA-Z](-?[a-zA-Z0-9])+\.[a-zA-Z]{2,}$'
+FQDN_REGEX='^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$'
 if ! printf %s "$1" | grep -Eq "$FQDN_REGEX"; then
   echoerr "Invalid parameter. You must enter a fully qualified domain name (FQDN)."
   exit 1

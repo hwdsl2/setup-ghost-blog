@@ -5,7 +5,7 @@
 #
 # DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
 #
-# Copyright (C) 2015-2016 Lin Song <linsongui@gmail.com>
+# Copyright (C) 2015-2017 Lin Song <linsongui@gmail.com>
 # Based on the work of Herman Stevens (Copyright 2013)
 #
 # This program is free software: you can redistribute it and/or modify it under

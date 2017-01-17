@@ -43,7 +43,7 @@ sudo bash ghost-setup.sh BLOG_FULL_DOMAIN_NAME
 
 ## 授权协议
 
-版权所有 (C) 2015-2016 <a href="https://www.linkedin.com/in/linsongui" target="_blank">Lin Song</a> <a href="https://www.linkedin.com/in/linsongui" target="_blank"><img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_viewmy_160x25.png" width="160" height="25" border="0" alt="View my profile on LinkedIn"></a>   
+版权所有 (C) 2015-2017 <a href="https://www.linkedin.com/in/linsongui" target="_blank">Lin Song</a> <a href="https://www.linkedin.com/in/linsongui" target="_blank"><img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_viewmy_160x25.png" width="160" height="25" border="0" alt="View my profile on LinkedIn"></a>   
 基于 <a href="https://blog.igbuend.com/dude-looks-like-a-ghost/" target="_blank">Herman Stevens 的工作</a> （版权所有 2013）
 
 特别感谢 <a href="https://raymii.org" target="_blank">Remy van Elst</a> 和 <a href="https://philio.me" target="_blank">Phil Bayfield</a> 提供有益的建议。

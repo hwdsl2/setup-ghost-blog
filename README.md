@@ -1,4 +1,4 @@
-﻿# Ghost Blog Auto Setup Scripts &nbsp;[![Build Status](https://travis-ci.org/hwdsl2/setup-ghost-blog.svg?branch=master)](https://travis-ci.org/hwdsl2/setup-ghost-blog)
+# Ghost Blog Auto Setup Scripts &nbsp; [![Build Status](https://travis-ci.org/hwdsl2/setup-ghost-blog.svg?branch=master)](https://travis-ci.org/hwdsl2/setup-ghost-blog)
 
 *Read this in other languages: [English](README.md), [简体中文](README-zh.md).*
 
@@ -6,7 +6,7 @@ Scripts to install your own <a href="https://github.com/TryGhost/Ghost" target="
 
 Powered by Node.js, Ghost blog is a simple and modern <a href="https://ghost.org/vs/wordpress/" target="_blank">WordPress alternative</a> which puts the excitement back into blogging. It's beautifully designed, easy to use, completely open source, and free for everyone.
 
-**New:** Install **multiple blogs** on the same server! Simply re-run the script with a new full domain name.
+**New:** **Install multiple blogs** on the same server! Simply re-run the script with a new full domain name.
 
 <a href="https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/" target="_blank">**&raquo; Related tutorial: Ghost Blog Auto Setup with Nginx and ModSecurity**</a> <a href="https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/" target="_blank">**(or Naxsi)**</a>
 

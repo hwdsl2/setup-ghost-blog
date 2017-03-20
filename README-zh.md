@@ -1,4 +1,4 @@
-﻿# Ghost 博客平台一键安装脚本 &nbsp;[![Build Status](https://travis-ci.org/hwdsl2/setup-ghost-blog.svg?branch=master)](https://travis-ci.org/hwdsl2/setup-ghost-blog)
+# Ghost 博客平台一键安装脚本 &nbsp; [![Build Status](https://travis-ci.org/hwdsl2/setup-ghost-blog.svg?branch=master)](https://travis-ci.org/hwdsl2/setup-ghost-blog)
 
 *其他语言版本: [English](README.md), [简体中文](README-zh.md).*
 
@@ -6,7 +6,7 @@
 
 基于 Node.js 技术构建，Ghost 博客是一个简约并且现代的<a href="https://ghost.org/vs/wordpress/" target="_blank"> WordPress 替代品</a>。它设计精美，使用方便，完全开源，并且对所有人都是免费的。
 
-**新：** 在同一台服务器上安装 **多个博客**！只需再次运行脚本，并指定新的完整域名作为参数。
+**新：** 在同一台服务器上 **安装多个博客**！只需再次运行脚本，并指定新的完整域名作为参数。
 
 <a href="https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/" target="_blank">**&raquo; 相关教程： Ghost Blog Auto Setup with Nginx and ModSecurity**</a> <a href="https://blog.ls20.com/install-ghost-0-4-with-nginx-and-naxsi-on-ubuntu/" target="_blank">**(or Naxsi)**</a>
 

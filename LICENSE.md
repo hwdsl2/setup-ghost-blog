@@ -1,4 +1,4 @@
-﻿Copyright (C) 2015-2017 Lin Song   
+Copyright (C) 2015-2017 Lin Song   
 Based on the work of Herman Stevens (Copyright 2013)
 
 

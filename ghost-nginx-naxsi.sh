@@ -25,20 +25,25 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 echoerr() { echo "Error: $1" >&2; }
 
+# Check operating system
 os_type="$(lsb_release -si 2>/dev/null)"
-os_ver="$(lsb_release -sr 2>/dev/null)"
-if [ -z "$os_type" ] && [ -f "/etc/lsb-release" ]; then
-  os_type="$(. /etc/lsb-release && echo "$DISTRIB_ID")"
-  os_ver="$(. /etc/lsb-release && echo "$DISTRIB_RELEASE")"
+os_vers="$(lsb_release -sr 2>/dev/null)"
+if [ -z "$os_type" ]; then
+  [ -f /etc/os-release  ] && os_type="$(. /etc/os-release  && echo "$ID")"
+  [ -f /etc/os-release  ] && os_vers="$(. /etc/os-release  && echo "$VERSION_ID")"
+  [ -f /etc/lsb-release ] && os_type="$(. /etc/lsb-release && echo "$DISTRIB_ID")"
+  [ -f /etc/lsb-release ] && os_vers="$(. /etc/lsb-release && echo "$DISTRIB_RELEASE")"
+  [ "$os_type" = "debian" ] && os_type=Debian
+  [ "$os_type" = "ubuntu" ] && os_type=Ubuntu
 fi
 if [ "$os_type" = "Ubuntu" ]; then
-  if [ "$os_ver" != "16.04" ] && [ "$os_ver" != "14.04" ] && [ "$os_ver" != "12.04" ]; then
+  if [ "$os_vers" != "16.04" ] && [ "$os_vers" != "14.04" ] && [ "$os_vers" != "12.04" ]; then
     echoerr "This script only supports Ubuntu 16.04/14.04/12.04."
     exit 1
   fi
 elif [ "$os_type" = "Debian" ]; then
-  os_ver="$(sed 's/\..*//' /etc/debian_version 2>/dev/null)"
-  if [ "$os_ver" != "8" ]; then
+  os_vers="$(sed 's/\..*//' /etc/debian_version 2>/dev/null)"
+  if [ "$os_vers" != "8" ]; then
     echoerr "This script only supports Debian 8 (Jessie)."
     exit 1
   fi
@@ -49,16 +54,17 @@ else
   elif ! grep -qs -e "release 6" -e "release 7" /etc/redhat-release; then
     echoerr "This script only supports CentOS 6 and 7."
     exit 1
-  else
-    os_type="CentOS"
   fi
+  os_type="CentOS"
 fi
 
+# Check for root permission
 if [ "$(id -u)" != 0 ]; then
   echoerr "Script must be run as root. Try 'sudo bash $0'"
   exit 1
 fi
 
+# Check if the server has enough RAM
 phymem="$(free | awk '/^Mem:/{print $2}')"
 [ -z "$phymem" ] && phymem=0
 if [ "$phymem" -lt 500000 ]; then
@@ -66,9 +72,10 @@ if [ "$phymem" -lt 500000 ]; then
   exit 1
 fi
 
+# Check for valid blog domain name (FQDN)
 if [ "$1" = "" ] || [ "$1" = "BLOG_FULL_DOMAIN_NAME" ]; then
   script_name=$(basename "$0")
-  echo "Usage: bash $script_name BLOG_FULL_DOMAIN_NAME (Replace with actual domain name)"
+  echo "Usage: bash $script_name BLOG_FULL_DOMAIN_NAME (Replace with actual value)"
   exit 1
 fi
 
@@ -86,6 +93,7 @@ fi
 ghost_num=1
 ghost_user=ghost
 ghost_port=2368
+
 if id -u ghost >/dev/null 2>&1; then
   echo 'It looks like this server already has Ghost blog installed! '
   if [ -d "/var/www/$1" ]; then
@@ -153,9 +161,8 @@ The full domain name for your new blog is:
 Please double check. This MUST be correct for it to work!
 
 IMPORTANT: DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
-
-This script should ONLY be used on a Virtual Private Server (VPS) or dedicated server,
-with *freshly installed* Ubuntu 16.04/14.04/12.04, Debian 8 or CentOS 6/7.
+This script should ONLY be used on a VPS or dedicated server, with
+*freshly installed* Ubuntu 16.04/14.04/12.04, Debian 8 or CentOS 6/7.
 
 EOF
 

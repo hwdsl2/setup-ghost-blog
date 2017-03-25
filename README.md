@@ -2,7 +2,7 @@
 
 *Read this in other languages: [English](README.md), [简体中文](README-zh.md).*
 
-Scripts to install your own <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost blog</a> on Ubuntu, Debian or CentOS, with <a href="http://nginx.org/en/" target="_blank">Nginx</a> (as a reverse proxy) and <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> or <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a> web application firewall for better performance and security.
+Scripts to install your own <a href="https://github.com/TryGhost/Ghost" target="_blank">Ghost blog</a> on Ubuntu, Debian or CentOS, with <a href="http://nginx.org/en/" target="_blank">Nginx</a> (as a reverse proxy) and <a href="https://www.modsecurity.org/" target="_blank">ModSecurity</a> or <a href="https://github.com/nbs-system/naxsi" target="_blank">Naxsi</a> web application firewall for optimal performance and security.
 
 Powered by Node.js, Ghost blog is a simple and modern <a href="https://ghost.org/vs/wordpress/" target="_blank">WordPress alternative</a> which puts the excitement back into blogging. It's beautifully designed, easy to use, completely open source, and free for everyone.
 
@@ -23,7 +23,7 @@ A dedicated server or Virtual Private Server (VPS), **freshly installed** with:
 
 ## Installation
 
-First, update your system with `apt-get update && apt-get dist-upgrade` and reboot. This is optional, but recommended.
+First, update your system with `apt-get update && apt-get dist-upgrade` (Ubuntu/Debian) or `yum update` (CentOS) and reboot. This is optional, but recommended.
 
 #### Select ModSecurity WAF:
 
@@ -39,7 +39,7 @@ wget https://git.io/ghost-nginx-naxsi -O ghost-setup.sh
 sudo bash ghost-setup.sh BLOG_FULL_DOMAIN_NAME
 ```
 
-**Note:** Replace `BLOG_FULL_DOMAIN_NAME` above with your actual full domain name. The latest <a href="https://dev.ghost.org/lts/" target="_blank">v0.11-LTS</a> version of Ghost blog will be automatically installed.
+**Note:** Replace the above with your blog's full domain name. The latest <a href="https://dev.ghost.org/tag/releases/" target="_blank">0.11.x (LTS)</a> version of Ghost blog will be installed.
 
 ## License
 

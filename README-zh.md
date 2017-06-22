@@ -14,8 +14,8 @@
 
 一个专用服务器或虚拟专用服务器 (VPS)，**全新安装** 以下系统：   
 - Ubuntu 16.04 (Xenial) or 14.04 (Trusty)
-- Debian 8 (Jessie)
-- CentOS 6 or 7
+- Debian 9 (Stretch) or 8 (Jessie)
+- CentOS 7 or 6
 
 **注：** 需要至少 **512 MB** 内存。
 

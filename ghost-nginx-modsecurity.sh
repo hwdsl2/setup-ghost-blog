@@ -38,13 +38,13 @@ if [ -z "$os_type" ]; then
 fi
 if [ "$os_type" = "Ubuntu" ]; then
   if [ "$os_vers" != "16.04" ] && [ "$os_vers" != "14.04" ] && [ "$TRAVIS" != "true" ]; then
-    echoerr "This script only supports Ubuntu 16.04/14.04."
+    echoerr "This script only supports Ubuntu 16.04 and 14.04."
     exit 1
   fi
 elif [ "$os_type" = "Debian" ]; then
   os_vers="$(sed 's/\..*//' /etc/debian_version 2>/dev/null)"
-  if [ "$os_vers" != "8" ]; then
-    echoerr "This script only supports Debian 8 (Jessie)."
+  if [ "$os_vers" != "8" ] && [ "$os_vers" != "9" ]; then
+    echoerr "This script only supports Debian 9 and 8."
     exit 1
   fi
 else
@@ -52,7 +52,7 @@ else
     echoerr "This script only supports Ubuntu, Debian and CentOS."
     exit 1
   elif ! grep -qs -e "release 6" -e "release 7" /etc/redhat-release; then
-    echoerr "This script only supports CentOS 6 and 7."
+    echoerr "This script only supports CentOS 7 and 6."
     exit 1
   fi
   os_type="CentOS"
@@ -151,7 +151,7 @@ fi
 clear
 
 cat <<EOF
-Welcome! This script will install the latest v0.11-LTS version of Ghost blog
+Welcome! This script will install the latest 0.11.x (LTS) version of Ghost blog
 on your server, with Nginx (as a reverse proxy) and ModSecurity WAF.
 
 The full domain name for your new blog is:
@@ -163,7 +163,7 @@ Please double check. This MUST be correct for it to work!
 IMPORTANT: DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
 
 It should only be used on a virtual private server (VPS) or dedicated server,
-with *freshly installed* Ubuntu 16.04/14.04, Debian 8 or CentOS 6/7.
+with *freshly installed* Ubuntu 16.04/14.04, Debian 9/8 or CentOS 7/6.
 
 EOF
 
@@ -216,7 +216,7 @@ else
   # We need some more software
   apt-get -yq install unzip fail2ban \
     build-essential apache2-dev libxml2-dev wget curl sudo \
-    libcurl4-openssl-dev libpcre3-dev libssl-dev \
+    libcurl4-openssl-dev libpcre3-dev libssl-dev zlib1g-dev \
     libtool autoconf || { echoerr "'apt-get install' failed."; exit 1; }
 
 fi
@@ -233,33 +233,38 @@ fi
 service fail2ban stop >/dev/null 2>&1
 service fail2ban start
 
-# Insert IPTables rules at boot
+# Insert IPTables rules on boot
 if ! grep -qs "ghost blog setup script" /etc/rc.local; then
-  if [ "$os_type" != "CentOS" ]; then
-    sed --follow-symlinks -i -e '/^exit 0/d' /etc/rc.local
+  if [ -f /etc/rc.local ]; then
+    if [ "$os_type" != "CentOS" ]; then
+      sed --follow-symlinks -i -e '/^exit 0/d' /etc/rc.local
+    fi
+  else
+    echo '#!/bin/sh' > /etc/rc.local
   fi
 cat >> /etc/rc.local <<'EOF'
 
 # Added by ghost blog setup script
+(sleep 15
 iptables -I INPUT -p tcp --dport 80 -j ACCEPT
 iptables -I INPUT -p tcp --dport 443 -j ACCEPT
-service fail2ban restart
+service fail2ban restart)&
 EOF
   if [ "$os_type" != "CentOS" ]; then
     echo "exit 0" >> /etc/rc.local
   fi
-chmod +x /etc/rc.local
+  chmod +x /etc/rc.local
 fi
 
 # Next, we need to install Node.js.
 # Ref: https://github.com/nodesource/distributions
 if [ "$ghost_num" = "1" ] || [ ! -f /usr/bin/node ]; then
   if [ "$os_type" = "CentOS" ]; then
-    curl -sL https://rpm.nodesource.com/setup_4.x | bash -
+    curl -sL https://rpm.nodesource.com/setup_6.x | bash -
     sed -i '/gpgkey/a exclude=nodejs' /etc/yum.repos.d/epel.repo
     yum -y --disablerepo=epel install nodejs || { echoerr "Failed to install 'nodejs'."; exit 1; }
   else
-    curl -sL https://deb.nodesource.com/setup_4.x | bash -
+    curl -sL https://deb.nodesource.com/setup_6.x | bash -
     apt-get -yq install nodejs || { echoerr "Failed to install 'nodejs'."; exit 1; }
   fi
 fi

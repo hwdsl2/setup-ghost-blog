@@ -22,9 +22,9 @@ script:
  - echo -e 'y\ny' | sudo bash ghost-nginx-$TEST_SUITE.sh blog2.example.com
  - echo -e 'y\ny' | sudo bash ghost-nginx-$TEST_SUITE.sh blog3.example.com
  - sleep 30
- - curl -H "Host:blog1.example.com" "http://127.0.0.1" | grep "blog1\.example\.com"
- - curl -H "Host:blog2.example.com" "http://127.0.0.1" | grep "blog2\.example\.com"
- - curl -H "Host:blog3.example.com" "http://127.0.0.1" | grep "blog3\.example\.com"
+ - curl -s -H "Host:blog1.example.com" "http://127.0.0.1" | grep "blog1\.example\.com"
+ - curl -s -H "Host:blog2.example.com" "http://127.0.0.1" | grep "blog2\.example\.com"
+ - curl -s -H "Host:blog3.example.com" "http://127.0.0.1" | grep "blog3\.example\.com"
  - cat /var/www/blog1.example.com/.forever/*log
  - cat /var/www/blog2.example.com/.forever/*log
  - cat /var/www/blog3.example.com/.forever/*log

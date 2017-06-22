@@ -14,8 +14,8 @@ Powered by Node.js, Ghost blog is a simple and modern <a href="https://ghost.org
 
 A dedicated server or virtual private server (VPS), **freshly installed** with:   
 - Ubuntu 16.04 (Xenial) or 14.04 (Trusty)
-- Debian 8 (Jessie)
-- CentOS 6 or 7
+- Debian 9 (Stretch) or 8 (Jessie)
+- CentOS 7 or 6
 
 **Note:** A minimum of **512 MB** RAM is required.
 

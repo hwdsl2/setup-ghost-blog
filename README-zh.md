@@ -13,7 +13,7 @@
 ## 系统要求
 
 一个专用服务器或虚拟专用服务器 (VPS)，**全新安装** 以下系统：   
-- Ubuntu 16.04 (Xenial), 14.04 (Trusty) or 12.04 (Precise)
+- Ubuntu 16.04 (Xenial) or 14.04 (Trusty)
 - Debian 8 (Jessie)
 - CentOS 6 or 7
 

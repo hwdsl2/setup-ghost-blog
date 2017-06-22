@@ -37,8 +37,8 @@ if [ -z "$os_type" ]; then
   [ "$os_type" = "ubuntu" ] && os_type=Ubuntu
 fi
 if [ "$os_type" = "Ubuntu" ]; then
-  if [ "$os_vers" != "16.04" ] && [ "$os_vers" != "14.04" ] && [ "$os_vers" != "12.04" ]; then
-    echoerr "This script only supports Ubuntu 16.04/14.04/12.04."
+  if [ "$os_vers" != "16.04" ] && [ "$os_vers" != "14.04" ] && [ "$TRAVIS" != "true" ]; then
+    echoerr "This script only supports Ubuntu 16.04/14.04."
     exit 1
   fi
 elif [ "$os_type" = "Debian" ]; then
@@ -156,13 +156,14 @@ on your server, with Nginx (as a reverse proxy) and Naxsi WAF.
 
 The full domain name for your new blog is:
 
->>> $1 <<<
+>> $1 <<
 
 Please double check. This MUST be correct for it to work!
 
 IMPORTANT: DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC!
-This script should ONLY be used on a VPS or dedicated server, with
-*freshly installed* Ubuntu 16.04/14.04/12.04, Debian 8 or CentOS 6/7.
+
+It should only be used on a virtual private server (VPS) or dedicated server,
+with *freshly installed* Ubuntu 16.04/14.04, Debian 8 or CentOS 6/7.
 
 EOF
 

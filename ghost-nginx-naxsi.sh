@@ -373,9 +373,9 @@ if [ "$ghost_num" = "1" ] || [ ! -f /opt/nginx/sbin/nginx ]; then
   
   # Download and compile Nginx:
   cd /opt/src || exit 1
-  wget -t 3 -T 30 -qO- https://nginx.org/download/nginx-1.12.0.tar.gz | tar xz
-  [ ! -d nginx-1.12.0 ] && { echoerr "Cannot download Nginx source."; exit 1; }
-  cd nginx-1.12.0 || exit 1
+  wget -t 3 -T 30 -qO- https://nginx.org/download/nginx-1.12.1.tar.gz | tar xz
+  [ ! -d nginx-1.12.1 ] && { echoerr "Cannot download Nginx source."; exit 1; }
+  cd nginx-1.12.1 || exit 1
   ./configure --add-module=../naxsi-0.55.3/naxsi_src/ \
   --prefix=/opt/nginx --user=nginx --group=nginx \
   --with-http_ssl_module --with-http_v2_module --with-http_realip_module

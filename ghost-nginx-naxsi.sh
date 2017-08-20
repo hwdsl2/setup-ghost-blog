@@ -37,7 +37,7 @@ if [ -z "$os_type" ]; then
   [ "$os_type" = "ubuntu" ] && os_type=Ubuntu
 fi
 if [ "$os_type" = "Ubuntu" ]; then
-  if [ "$os_vers" != "16.04" ] && [ "$os_vers" != "14.04" ] && [ "$TRAVIS" != "true" ]; then
+  if [ "$os_vers" != "16.04" ] && [ "$os_vers" != "14.04" ]; then
     echoerr "This script only supports Ubuntu 16.04 and 14.04."
     exit 1
   fi

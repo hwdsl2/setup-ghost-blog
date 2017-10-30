@@ -25,6 +25,8 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 echoerr() { echo "Error: $1" >&2; }
 
+ghost_blog_install() {
+
 # Check operating system
 os_type="$(lsb_release -si 2>/dev/null)"
 os_vers="$(lsb_release -sr 2>/dev/null)"
@@ -106,8 +108,8 @@ if id -u ghost >/dev/null 2>&1; then
     if ! id -u "ghost$count" >/dev/null 2>&1; then
       ghost_num="$count"
       ghost_user="ghost$count"
-      let ghost_port=$ghost_port+$count
-      let ghost_port=$ghost_port-1
+      ghost_port=$((ghost_port+count))
+      ghost_port=$((ghost_port-1))
       break
     fi
   done
@@ -125,8 +127,8 @@ if id -u ghost >/dev/null 2>&1; then
   esac
   
   phymem_req=250
-  let phymem_req1=$phymem_req*$ghost_num
-  let phymem_req2=$phymem_req*$ghost_num*1000
+  phymem_req1=$((phymem_req*ghost_num))
+  phymem_req2=$((phymem_req*ghost_num*1000))
   
   if [ "$phymem" -lt "$phymem_req2" ]; then
     echo "This server might not have enough RAM to install another Ghost blog."
@@ -713,9 +715,9 @@ EOF
 else
   
 cat <<EOF
-vvvvvvvvvvvvvvvvvvvvv
->> IMPORTANT NOTES <<
-^^^^^^^^^^^^^^^^^^^^^
+-----------------------
+>>> IMPORTANT NOTES <<<
+-----------------------
 
 To work around a ModSecurity bug which only affects multiple blogs,
 you must now manage your blogs via SSH port forwarding (see below),
@@ -741,11 +743,16 @@ service nginx restart
 (Optional) Check out my blog article for more configuration steps:
 https://blog.ls20.com/install-ghost-0-3-3-with-nginx-and-modsecurity/
 
-Ghost support: http://support.ghost.org
+Ghost docs: https://docs.ghost.org/v0.11/docs
 Real-time chat: https://ghost.org/slack
 
 ==================================================================================
 
 EOF
+
+}
+
+## Defer setup until we have the complete script
+ghost_blog_install "$@"
 
 exit 0

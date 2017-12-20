@@ -1,7 +1,7 @@
 language: bash
 
 sudo: required
-dist: trusty
+dist: precise
 
 addons:
   apt:
@@ -19,6 +19,7 @@ script:
  - shellcheck *.sh
  - sudo rm -f /etc/profile.d/nvm.sh
  - sudo sed -i "/debian unstable/d" /etc/apt/sources.list
+ - sed -i -e '/This script only supports Ubuntu 16\.04 and 14\.04/,/exit 1/s/exit/#exit/' ghost-nginx-*.sh
  - echo y         | sudo bash ghost-nginx-$TEST_SUITE.sh blog1.example.com
  - echo -e 'y\ny' | sudo bash ghost-nginx-$TEST_SUITE.sh blog2.example.com
  - echo -e 'y\ny' | sudo bash ghost-nginx-$TEST_SUITE.sh blog3.example.com

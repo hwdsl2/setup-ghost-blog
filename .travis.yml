@@ -3,22 +3,21 @@ language: bash
 sudo: required
 dist: precise
 
-addons:
-  apt:
-    sources:
-    - debian-sid
-    packages:
-    - shellcheck
-
 env:
   - TEST_SUITE=modsecurity
   - TEST_SUITE=naxsi
+
+install:
+  - scversion="stable"
+  - wget "https://storage.googleapis.com/shellcheck/shellcheck-$scversion.linux.x86_64.tar.xz"
+  - tar --xz -xvf "shellcheck-$scversion.linux.x86_64.tar.xz"
+  - shellcheck() { "shellcheck-$scversion/shellcheck" "$@"; }
+  - shellcheck --version
 
 script:
  - export SHELLCHECK_OPTS="-e SC1091,SC1117"
  - shellcheck *.sh
  - sudo rm -f /etc/profile.d/nvm.sh
- - sudo sed -i "/debian unstable/d" /etc/apt/sources.list
  - sed -i -e '/This script only supports Ubuntu 16\.04 and 14\.04/,/exit 1/s/exit/#exit/' ghost-nginx-*.sh
  - echo y         | sudo bash ghost-nginx-$TEST_SUITE.sh blog1.example.com
  - echo -e 'y\ny' | sudo bash ghost-nginx-$TEST_SUITE.sh blog2.example.com

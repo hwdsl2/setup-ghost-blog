@@ -39,7 +39,7 @@ wget https://git.io/ghost-nginx-naxsi -O ghost-setup.sh
 sudo bash ghost-setup.sh BLOG_FULL_DOMAIN_NAME
 ```
 
-**Note:** Replace the above with your blog's full domain name. The latest <a href="https://dev.ghost.org/tag/releases/" target="_blank">0.11.x (LTS)</a> version of Ghost blog will be installed.
+**Note:** Replace the above with your blog's full domain name. The latest <a href="https://blog.ghost.org/tag/releases/" target="_blank">0.11.x</a> version of Ghost blog will be installed.
 
 ## License
 

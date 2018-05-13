@@ -39,7 +39,7 @@ wget https://git.io/ghost-nginx-naxsi -O ghost-setup.sh
 sudo bash ghost-setup.sh BLOG_FULL_DOMAIN_NAME
 ```
 
-**注：** 请把上面的参数替换为你的博客的完整域名。将会安装最新的 <a href="https://dev.ghost.org/tag/releases/" target="_blank">0.11.x (LTS)</a> 版本的 Ghost 博客。
+**注：** 请把上面的参数替换为你的博客的完整域名。将会安装最新的 <a href="https://blog.ghost.org/tag/releases/" target="_blank">0.11.x</a> 版本的 Ghost 博客。
 
 ## 授权协议
 

@@ -194,7 +194,7 @@ if [ "$os_type" = "CentOS" ]; then
   yum -y install epel-release || { echoerr "Cannot add EPEL repo."; exit 1; }
 
   # We need some more software
-  yum -y install unzip fail2ban gcc gcc-c++ make openssl-devel \
+  yum --enablerepo=epel -y install unzip fail2ban gcc gcc-c++ make openssl-devel \
     wget curl sudo libxml2-devel curl-devel httpd-devel pcre-devel \
     || { echoerr "'yum install' failed."; exit 1; }
 

@@ -39,7 +39,9 @@ wget https://git.io/ghost-nginx-naxsi -O ghost-setup.sh
 sudo bash ghost-setup.sh BLOG_FULL_DOMAIN_NAME
 ```
 
-**Note:** Replace the above with your blog's full domain name. The latest <a href="https://blog.ghost.org/tag/releases/" target="_blank">0.11.x</a> version of Ghost blog will be installed.
+**Note:** Replace the above with your blog's full domain name.
+
+:warning: Newer Ghost blog versions (such as 2.x) can be found in the <a href="https://github.com/TryGhost/Ghost" target="_blank">official repo</a>. However, if you wish to install the older 0.11.13 version, you may use these scripts.
 
 ## License
 

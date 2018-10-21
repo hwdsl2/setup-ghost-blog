@@ -31,10 +31,10 @@ ghost_blog_install() {
 os_type="$(lsb_release -si 2>/dev/null)"
 os_vers="$(lsb_release -sr 2>/dev/null)"
 if [ -z "$os_type" ]; then
-  [ -f /etc/os-release  ] && os_type="$(. /etc/os-release  && echo "$ID")"
-  [ -f /etc/os-release  ] && os_vers="$(. /etc/os-release  && echo "$VERSION_ID")"
-  [ -f /etc/lsb-release ] && os_type="$(. /etc/lsb-release && echo "$DISTRIB_ID")"
-  [ -f /etc/lsb-release ] && os_vers="$(. /etc/lsb-release && echo "$DISTRIB_RELEASE")"
+  [ -f /etc/os-release  ] && os_type="$(. /etc/os-release  && printf '%s' "$ID")"
+  [ -f /etc/os-release  ] && os_vers="$(. /etc/os-release  && printf '%s' "$VERSION_ID")"
+  [ -f /etc/lsb-release ] && os_type="$(. /etc/lsb-release && printf '%s' "$DISTRIB_ID")"
+  [ -f /etc/lsb-release ] && os_vers="$(. /etc/lsb-release && printf '%s' "$DISTRIB_RELEASE")"
   [ "$os_type" = "debian" ] && os_type=Debian
   [ "$os_type" = "ubuntu" ] && os_type=Ubuntu
 fi

@@ -153,7 +153,7 @@ fi
 clear
 
 cat <<EOF
-Welcome! This script will install Ghost blog version 0.11.13
+Welcome! This script will install Ghost blog version 0.11.14
 on your server, with Nginx (as a reverse proxy) and Naxsi WAF.
 
 The full domain name for your new blog is:
@@ -297,7 +297,7 @@ cd "/var/www/$BLOG_FQDN" || exit 1
 sudo -u "$ghost_user" BLOG_FQDN="$BLOG_FQDN" ghost_num="$ghost_num" ghost_port="$ghost_port" HOME="/var/www/$BLOG_FQDN" /bin/bash <<'SU_END'
 
 # Get the Ghost blog source, unzip and install.
-ghost_url="https://github.com/TryGhost/Ghost/releases/download/0.11.13/Ghost-0.11.13.zip"
+ghost_url="https://github.com/TryGhost/Ghost/releases/download/0.11.14/Ghost-0.11.14.zip"
 if ! wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url"; then
   echo "Error: Cannot download Ghost blog source." >&2
   exit 1
@@ -374,9 +374,9 @@ if [ "$ghost_num" = "1" ] || [ ! -f /opt/nginx/sbin/nginx ]; then
   
   # Download and compile Nginx:
   cd /opt/src || exit 1
-  wget -t 3 -T 30 -qO- https://nginx.org/download/nginx-1.14.0.tar.gz | tar xz
-  [ ! -d nginx-1.14.0 ] && { echoerr "Cannot download Nginx source."; exit 1; }
-  cd nginx-1.14.0 || exit 1
+  wget -t 3 -T 30 -qO- https://nginx.org/download/nginx-1.14.1.tar.gz | tar xz
+  [ ! -d nginx-1.14.1 ] && { echoerr "Cannot download Nginx source."; exit 1; }
+  cd nginx-1.14.1 || exit 1
   ./configure --add-module=../naxsi-0.55.3/naxsi_src/ \
   --prefix=/opt/nginx --user=nginx --group=nginx \
   --with-http_ssl_module --with-http_v2_module --with-http_realip_module

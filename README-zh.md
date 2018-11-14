@@ -1,4 +1,4 @@
-# Ghost 博客平台一键安装脚本 &nbsp; [![Build Status](https://travis-ci.org/hwdsl2/setup-ghost-blog.svg?branch=master)](https://travis-ci.org/hwdsl2/setup-ghost-blog)
+# Ghost 博客平台一键安装脚本 &nbsp; [![Build Status](https://img.shields.io/travis/hwdsl2/setup-ghost-blog.svg?maxAge=1200)](https://travis-ci.org/hwdsl2/setup-ghost-blog)
 
 *其他语言版本: [English](README.md), [简体中文](README-zh.md).*
 

@@ -1,4 +1,4 @@
-# Ghost Blog Auto Setup Scripts &nbsp; [![Build Status](https://travis-ci.org/hwdsl2/setup-ghost-blog.svg?branch=master)](https://travis-ci.org/hwdsl2/setup-ghost-blog)
+# Ghost Blog Auto Setup Scripts &nbsp; [![Build Status](https://img.shields.io/travis/hwdsl2/setup-ghost-blog.svg?maxAge=1200)](https://travis-ci.org/hwdsl2/setup-ghost-blog)
 
 *Read this in other languages: [English](README.md), [简体中文](README-zh.md).*
 

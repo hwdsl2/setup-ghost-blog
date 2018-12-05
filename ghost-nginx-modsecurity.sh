@@ -303,6 +303,8 @@ if ! wget -t 3 -T 30 -nv -O ghost-latest.zip "$ghost_url"; then
   exit 1
 fi
 unzip -o -qq ghost-latest.zip && /bin/rm -f ghost-latest.zip
+# Fix for https://github.com/TryGhost/Ghost/issues/10244
+sed -i -e '1322s/5\.1\.2/5.1.3/' -e '1324s/5\.1\.2/5.1.3/' npm-shrinkwrap.json
 npm install --production
 
 # Generate config file and make sure that Ghost uses your actual domain name

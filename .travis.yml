@@ -15,22 +15,22 @@ install:
   - shellcheck --version
 
 script:
- - export SHELLCHECK_OPTS="-e SC1091,SC1117"
- - shellcheck *.sh
-# - sudo rm -f /etc/profile.d/nvm.sh
-# - sed -i -e '/This script only supports Ubuntu 16\.04 and 14\.04/,/exit 1/s/exit/#exit/' ghost-nginx-*.sh
-# - echo y         | sudo bash ghost-nginx-$TEST_SUITE.sh blog1.example.com
-# - echo -e 'y\ny' | sudo bash ghost-nginx-$TEST_SUITE.sh blog2.example.com
-# - echo -e 'y\ny' | sudo bash ghost-nginx-$TEST_SUITE.sh blog3.example.com
-# - sleep 30
-# - curl -s -H "Host:blog1.example.com" "http://127.0.0.1" | grep "blog1\.example\.com"
-# - curl -s -H "Host:blog2.example.com" "http://127.0.0.1" | grep "blog2\.example\.com"
-# - curl -s -H "Host:blog3.example.com" "http://127.0.0.1" | grep "blog3\.example\.com"
-# - cat /var/www/blog1.example.com/.forever/*log
-# - cat /var/www/blog2.example.com/.forever/*log
-# - cat /var/www/blog3.example.com/.forever/*log
-# - cat /opt/nginx/logs/access.log
-# - cat /opt/nginx/logs/error.log
+  - export SHELLCHECK_OPTS="-e SC1091,SC1117"
+  - shellcheck *.sh
+  - sudo rm -f /etc/profile.d/nvm.sh
+  - sed -i -e '/This script only supports Ubuntu 16\.04 and 14\.04/,/exit 1/s/exit/#exit/' ghost-nginx-*.sh
+  - echo y         | sudo bash ghost-nginx-$TEST_SUITE.sh blog1.example.com
+  - echo -e 'y\ny' | sudo bash ghost-nginx-$TEST_SUITE.sh blog2.example.com
+  - echo -e 'y\ny' | sudo bash ghost-nginx-$TEST_SUITE.sh blog3.example.com
+  - sleep 30
+  - curl -s -H "Host:blog1.example.com" "http://127.0.0.1" | grep "blog1\.example\.com"
+  - curl -s -H "Host:blog2.example.com" "http://127.0.0.1" | grep "blog2\.example\.com"
+  - curl -s -H "Host:blog3.example.com" "http://127.0.0.1" | grep "blog3\.example\.com"
+  - cat /var/www/blog1.example.com/.forever/*log
+  - cat /var/www/blog2.example.com/.forever/*log
+  - cat /var/www/blog3.example.com/.forever/*log
+  - cat /opt/nginx/logs/access.log
+  - cat /opt/nginx/logs/error.log
 
 notifications:
   email:

@@ -1,4 +1,10 @@
-# Ghost Blog Auto Setup Scripts &nbsp; [![Build Status](https://img.shields.io/travis/hwdsl2/setup-ghost-blog.svg?maxAge=1200)](https://travis-ci.org/hwdsl2/setup-ghost-blog)
+# Ghost Blog Auto Setup Scripts
+
+## Project archived
+
+:no_entry: **This project is deprecated and has been archived.** :no_entry:
+
+To learn more about the latest version of Ghost blog, see <a href="https://github.com/TryGhost/Ghost" target="_blank">here</a>.
 
 *Read this in other languages: [English](README.md), [简体中文](README-zh.md).*
 
@@ -22,6 +28,10 @@ A dedicated server or virtual private server (VPS), **freshly installed** with:
 :warning: **DO NOT** run these scripts on your PC or Mac! They should only be used on a server!
 
 ## Installation
+
+:no_entry: **This project is deprecated and has been archived.** :no_entry:
+
+To learn more about the latest version of Ghost blog, see <a href="https://github.com/TryGhost/Ghost" target="_blank">here</a>.
 
 First, update your system with `apt-get update && apt-get dist-upgrade` (Ubuntu/Debian) or `yum update` (CentOS) and reboot. This is optional, but recommended.
 

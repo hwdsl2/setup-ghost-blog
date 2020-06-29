@@ -1,4 +1,10 @@
-# Ghost 博客平台一键安装脚本 &nbsp; [![Build Status](https://img.shields.io/travis/hwdsl2/setup-ghost-blog.svg?maxAge=1200)](https://travis-ci.org/hwdsl2/setup-ghost-blog)
+# Ghost 博客平台一键安装脚本
+
+## 项目已存档
+
+:no_entry: **该项目已不再维护并进入存档模式。** :no_entry:
+
+如需了解最新版本的 Ghost 博客，请看 <a href="https://github.com/TryGhost/Ghost" target="_blank">这里</a>。
 
 *其他语言版本: [English](README.md), [简体中文](README-zh.md).*
 
@@ -22,6 +28,10 @@
 :warning: **不要** 在你的 PC 或者 Mac 上运行这些脚本！它们只能用在服务器上！
 
 ## 安装说明
+
+:no_entry: **该项目已不再维护并进入存档模式。** :no_entry:
+
+如需了解最新版本的 Ghost 博客，请看 <a href="https://github.com/TryGhost/Ghost" target="_blank">这里</a>。
 
 首先，更新你的系统： 运行 `apt-get update && apt-get dist-upgrade` (Ubuntu/Debian) 或者 `yum update` (CentOS) 并重启。这一步是可选的，但推荐。
 
